@@ -29,6 +29,10 @@ public class Base extends Card {
 		return this;
 	}
 	
+	public boolean removeMinion(Minion minion) {
+		return minions.remove(minion);
+	}
+	
 	public int getCap() {
 		return cap;
 	}

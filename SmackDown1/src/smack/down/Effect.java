@@ -1,5 +1,5 @@
 package smack.down;
 
-public class Effect {
-
+public interface Effect {
+	public void expire();
 }

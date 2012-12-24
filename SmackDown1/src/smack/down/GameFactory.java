@@ -27,7 +27,7 @@ public class GameFactory {
 			
 			Collections.shuffle(cards);
 			Player player = new Player(info.name, new Deck(cards), new ArrayList<DeckCard>());
-
+			
 			for (DeckCard card : cards)
 				card.setOwner(player);
 			
@@ -35,10 +35,19 @@ public class GameFactory {
 			players.add(player);
 		}
 		
-		List<Base> bases = Arrays.asList(allBases);
+		List<Base> bases = new ArrayList<Base>(Arrays.asList(allBases()));
 		Collections.shuffle(bases);
+		List<Base> startingBases = new ArrayList<Base>(players.size() + 1);
 		
-		return new Table(players, bases);
+		for (int i = 0; i < players.size() + 1; ++i)
+			startingBases.add(bases.remove(bases.size() - 1));
+		
+		Table table = new Table(players, bases, startingBases);
+		
+		for (Player player : players)
+			player.setTable(table);
+		
+		return table;
 	}
 	
 	public static class PlayerInfo {
@@ -58,72 +67,88 @@ public class GameFactory {
 		}
 	}
 	
-	private static final Base[] allBases = {
-		new CaveOfShinies(),
-		new CentralBrain(),
-		new EvansCityCemetery(),
-		new Factory2341337(),
-		new GreatLibrary(),
-		new GreyOpal(),
-		new Homeworld(),
-		new JungleOasis(),
-		new Mothership(),
-		new MushroomKingdom(),
-		new NinjaDoku(),
-		new RhodesPlazaMall(),
-		new SchoolOfWizardry(),
-		new TarPits(),
-		new TempleOfGoju(),
-		new Tortuga()
-	};
+	private static Base[] allBases() {
+		return new Base[] {
+			new CaveOfShinies(),
+			new CentralBrain(),
+			new EvansCityCemetery(),
+			new Factory2341337(),
+			new GreatLibrary(),
+			new GreyOpal(),
+			new Homeworld(),
+			new JungleOasis(),
+			new Mothership(),
+			new MushroomKingdom(),
+			new NinjaDoku(),
+			new RhodesPlazaMall(),
+			new SchoolOfWizardry(),
+			new TarPits(),
+			new TempleOfGoju(),
+			new Tortuga()
+		};
+	}
 	
-	private static final DeckCard[] aliens = {
-		new Collector(), new Collector(), new Collector(),
-		new Invader(), new Invader(),
-		new Scout(), new Scout(),
-		new SupremeOverlord()
-	};
+	private static DeckCard[] aliens() {
+		return new DeckCard[] {
+			new Collector(), new Collector(), new Collector(),
+			new Invader(), new Invader(),
+			new Scout(), new Scout(),
+			new SupremeOverlord()
+		};
+	}
 	
-	private static final DeckCard[] dinosaurs = {
-		new WarRaptor(), new WarRaptor(), new WarRaptor(),
-		new ArmorStego(), new ArmorStego(),
-		new Laseratops(), new Laseratops(),
-		new KingRex()
-	};
+	private static DeckCard[] dinosaurs() {
+		return new DeckCard[] {
+			new WarRaptor(), new WarRaptor(), new WarRaptor(),
+			new ArmorStego(), new ArmorStego(),
+			new Laseratops(), new Laseratops(),
+			new KingRex()
+		};
+	}
 	
-	private static final DeckCard[] ninjas = {
-		new NinjaAcolyte(), new NinjaAcolyte(), new NinjaAcolyte(),
-		new Shinobi(), new Shinobi(),
-		new TigerAssassin(), new TigerAssassin(),
-		new NinjaMaster()
-	};
+	private static DeckCard[] ninjas() {
+		return new DeckCard[] {
+			new NinjaAcolyte(), new NinjaAcolyte(), new NinjaAcolyte(),
+			new Shinobi(), new Shinobi(),
+			new TigerAssassin(), new TigerAssassin(),
+			new NinjaMaster()
+		};
+	}
 	
-	private static final DeckCard[] pirates = {
-		new FirstMate(), new FirstMate(), new FirstMate(),
-		new SaucyWench(), new SaucyWench(),
-		new Buchaneer(), new Buchaneer(),
-		new PirateKing()
-	};
+	private static DeckCard[] pirates() {
+		return new DeckCard[] {
+			new FirstMate(), new FirstMate(), new FirstMate(),
+			new SaucyWench(), new SaucyWench(),
+			new Buchaneer(), new Buchaneer(),
+			new PirateKing()
+		};
+	}
 	
-	private static final DeckCard[] robots = {
-		new MicrobotGuard(), new MicrobotArchive(), new MicrobotAlpha(),
-		new Zapbot(), new Zapbot(),
-		new Warbot(), new Warbot(),
-		new Nukebot()
-	};
+	private static DeckCard[] robots() {
+		return new DeckCard[] {
+				new MicrobotGuard(), new MicrobotArchive(), new MicrobotAlpha(),
+				new Zapbot(), new Zapbot(),
+				new Warbot(), new Warbot(),
+				new Nukebot()
+		};
+	}
 	
-	private static final DeckCard[] tricksters = {
-		new Gremlin(), new Gremlin(), new Gremlin(),
-		new Gnome(), new Gnome(),
-		new Brownie(), new Brownie(),
-		new Leprechaun()
-	};
+	private static DeckCard[] tricksters() {
+		return new DeckCard[] {
+				new Gremlin(), new Gremlin(), new Gremlin(),
+				new Gnome(), new Gnome(),
+				new Brownie(), new Brownie(),
+				new Leprechaun()
+		};
+	}
 	
-	private static final DeckCard[] wizards = {
-		new Neophyte(), new Neophyte(), new Neophyte(),
-		new Chronomage(), new Chronomage(),
-		new Archmage()
-	};
+	private static DeckCard[] wizards() {
+		return new DeckCard[] {
+			new Neophyte(), new Neophyte(), new Neophyte(),
+			new Chronomage(), new Chronomage(),
+			new Archmage()
+		};
+	}
 	
 	private static DeckCard[] zombies() {
 		return new DeckCard[] {
@@ -136,13 +161,13 @@ public class GameFactory {
 	
 	private static DeckCard[] get(Faction faction) {
 		switch (faction) {
-		case Aliens: return aliens;
-		case Dinosaurs: return dinosaurs;
-		case Ninjas: return ninjas;
-		case Pirates: return pirates;
-		case Robots: return robots;
-		case Tricksters: return tricksters;
-		case Wizards: return wizards;
+		case Aliens: return aliens();
+		case Dinosaurs: return dinosaurs();
+		case Ninjas: return ninjas();
+		case Pirates: return pirates();
+		case Robots: return robots();
+		case Tricksters: return tricksters();
+		case Wizards: return wizards();
 		case Zombies: return zombies();
 		}
 		
