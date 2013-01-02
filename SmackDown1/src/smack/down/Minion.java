@@ -8,29 +8,29 @@ import smack.down.effects.StrengthEffect;
 public class Minion extends DeckCard {
 	private int strength;
 	private Base base = null;
-	private List<StrengthEffect> effects;
+	private List<Effect> effects;
 	
 	public Minion(String name, Faction faction, int strength) {
 		super(name, faction);
 		this.strength = strength;
-		this.effects = new ArrayList<StrengthEffect>();
+		this.effects = new ArrayList<Effect>();
 	}
 	
 	public int getStrength() {
 		int bonus = 0;
 		
-		for (StrengthEffect effect : effects) {
-			bonus += effect.getAmount();
-		}
+		for (Effect effect : effects)
+			if (effect instanceof StrengthEffect)
+				bonus += ((StrengthEffect) effect).getAmount();
 		
 		return strength + bonus;
 	}
 	
-	public void addEffect(StrengthEffect effect) {
+	public void addEffect(Effect effect) {
 		effects.add(effect);
 	}
 	
-	public void removeEffect(StrengthEffect effect) {
+	public void removeEffect(Effect effect) {
 		effects.remove(effect);
 	}
 	
@@ -55,9 +55,15 @@ public class Minion extends DeckCard {
 		
 	}
 	
+	public void expireEffects() {
+		for (Effect effect : effects)
+			effect.expire();
+	}
+	
 	public void returnToHand() {
 		base.removeMinion(this);
 		setBase(null);
+		expireEffects();
 		getOwner().addToHand(this);
 	}
 	
@@ -65,10 +71,23 @@ public class Minion extends DeckCard {
 		getOwner().addToDiscard(this);
 		base.removeMinion(this);
 		setBase(null);
+		expireEffects();
 		destroyed();
 	}
 	
 	public void destroyed() {
+		
+	}
+	
+	public void scoring() {
+		
+	}
+	
+	public void anyScoring(Base base) {
+		
+	}
+	
+	public void scored() {
 		
 	}
 }

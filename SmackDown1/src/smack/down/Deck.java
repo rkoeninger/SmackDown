@@ -48,7 +48,22 @@ public class Deck {
 		return cards;
 	}
 	
+	public DeckCard peek() {
+		if (drawPile.size() == 0) {
+			if (discardPile.size() == 0)
+				return null;
+			Collections.shuffle(discardPile);
+			drawPile.addAll(discardPile);
+			discardPile.clear();
+		}
+		return drawPile.get(drawPile.size() - 1);
+	}
+	
 	public void addToDiscard(DeckCard card) {
 		discardPile.add(card);
+	}
+	
+	public void removeFromDiscard(DeckCard card) {
+		discardPile.remove(card);
 	}
 }

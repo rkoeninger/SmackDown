@@ -96,6 +96,26 @@ public class Table {
 		return new ArrayList<Base>(bases);
 	}
 	
+	public List<Minion> getMinions() {
+		List<Minion> minions = new ArrayList<Minion>();
+		
+		for (Base base : bases)
+			minions.addAll(base.getMinions());
+		
+		return minions;
+	}
+	
+	public List<Minion> getMinions(Player player) {
+		List<Minion> minions = new ArrayList<Minion>();
+		
+		for (Base base : bases)
+			for (Minion minion : base.getMinions())
+				if (minion.getOwner() == player)
+					minions.add(minion);
+		
+		return minions;
+	}
+	
 	public List<Base> getBaseDeck() {
 		return new ArrayList<Base>(baseDeck);
 	}

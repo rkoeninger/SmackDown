@@ -29,7 +29,7 @@ public class NinjasTest {
 		
 		Minion m2 = (Minion) new NinjaMaster().setOwner(player2);
 		m2.play(base1, new Callback() {
-			public Minion selectMinionInPlay(String message, boolean optional, Predicate<Minion> pred) {
+			public Minion selectMinionInPlay(Base base) {
 				return m1;
 			}
 		});

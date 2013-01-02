@@ -1,6 +1,7 @@
 package smack.down.aliens;
 
 import smack.down.Action;
+import smack.down.Callback;
 import smack.down.Faction;
 import smack.down.Minion;
 import smack.down.moves.PlayMinion;
@@ -11,7 +12,7 @@ public class Abduction extends Action {
 		super("Abduction", Faction.Aliens, Target.Minion);
 	}
 	
-	public void play(Minion minion) {
+	public void play(Minion minion, Callback callback) {
 		minion.returnToHand();
 		getOwner().addMove(new PlayMinion());
 	}

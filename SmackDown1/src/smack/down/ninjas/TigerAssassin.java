@@ -12,11 +12,7 @@ public class TigerAssassin extends Minion {
 	}
 	
 	public void play(final Base base, Callback callback) {
-		Minion minion = callback.selectMinionInPlay("Select minion to destroy", true, new Callback.Predicate<Minion>() {
-			public boolean eval(Minion minion) {
-				return (minion.getBase() == base) && minion.getStrength() <= 3;
-			}
-		});
+		Minion minion = callback.selectMinionInPlay(base, 3);
 		
 		if (minion != null)
 			minion.destroy();

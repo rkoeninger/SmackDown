@@ -99,6 +99,10 @@ public class Player {
 		return cards;
 	}
 	
+	public DeckCard peek() {
+		return deck.peek();
+	}
+	
 	public List<DeckCard> getDrawPile() {
 		return deck.getDrawPile();
 	}
@@ -119,6 +123,11 @@ public class Player {
 	public void addToDiscard(DeckCard... cards) {
 		for (DeckCard card : cards)
 			deck.addToDiscard(card);
+	}
+	
+	public void removeFromDiscard(DeckCard... cards) {
+		for (DeckCard card : cards)
+			deck.removeFromDiscard(card);
 	}
 	
 	public void discardRandomCard() {
@@ -156,7 +165,7 @@ public class Player {
 		draw(2);
 		
 		while (hand.size() > 10) {
-			DeckCard card = callback.selectFromHand("Discard down to 10", false, Callback.truePredicate(new DeckCard[0]));
+			DeckCard card = callback.selectCardFromHand("Discard down to 10", false, Callback.truePredicate(new DeckCard[0]));
 			hand.remove(card);
 			deck.addToDiscard(card);
 		}

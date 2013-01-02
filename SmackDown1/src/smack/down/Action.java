@@ -16,17 +16,17 @@ public class Action extends DeckCard {
 		return target;
 	}
 	
-	public void play(Minion minion) {
+	public void play(Minion minion, Callback callback) {
 		if (target != Target.Minion)
 			throw new UnsupportedOperationException("play on a minion");
 	}
 	
-	public void play(Base base) {
+	public void play(Base base, Callback callback) {
 		if (target != Target.Base)
 			throw new UnsupportedOperationException("play on a base");
 	}
 	
-	public void play() {
+	public void play(Callback callback) {
 		if (target != Target.General)
 			throw new UnsupportedOperationException("play on the table");
 	}

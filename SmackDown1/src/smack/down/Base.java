@@ -24,6 +24,16 @@ public class Base extends Card {
 		return new ArrayList<Minion>(minions);
 	}
 	
+	public List<Minion> getMinions(Player player) {
+		List<Minion> playersMinions = new ArrayList<Minion>();
+		
+		for (Minion minion : minions)
+			if (minion.getOwner() == player)
+				playersMinions.add(minion);
+		
+		return playersMinions;
+	}
+	
 	public Base addMinion(Minion minion) {
 		minions.add(minion);
 		return this;

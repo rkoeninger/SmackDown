@@ -56,7 +56,7 @@ public class RobotsTest {
 		assertEquals(8, player1.getDrawPile().size());
 		
 		Action action = (Action) new TechCenter().setOwner(player1);
-		action.play(base1);
+		action.play(base1, new Callback(){});
 		
 		assertEquals(6, player1.getHand().size());
 		assertEquals(2, player1.getDrawPile().size());

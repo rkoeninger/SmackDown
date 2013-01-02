@@ -12,11 +12,7 @@ public class Collector extends Minion {
 	}
 	
 	public void play(final Base base, Callback callback) {
-		Minion minion = callback.selectMinionInPlay("Select minion to bounce", true, new Callback.Predicate<Minion>() {
-			public boolean eval(Minion minion) {
-				return (base == minion.getBase()) && (minion.getStrength() <= 3);
-			}
-		});
+		Minion minion = callback.selectMinionInPlay(base, 3);
 		
 		if (minion != null)
 			minion.returnToHand();

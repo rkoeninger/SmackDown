@@ -1,7 +1,7 @@
 package smack.down;
 
 public abstract class Callback {
-	public DeckCard selectFromHand(String message, boolean optional, Predicate<DeckCard> pred) {
+	public DeckCard selectCardFromHand(String message, boolean optional, Predicate<DeckCard> pred) {
 		throw new UnsupportedOperationException("selectFromHand");
 	}
 	
@@ -13,8 +13,28 @@ public abstract class Callback {
 		throw new UnsupportedOperationException("selectBaseInPlay");
 	}
 	
-	public Minion selectMinionInPlay(String message, boolean optional, Predicate<Minion> pred) {
-		throw new UnsupportedOperationException("selectMinionInPlay");
+	public Minion selectMinionInPlay() {
+		throw new UnsupportedOperationException("selectMinionInPlay()");
+	}
+	
+	public Minion selectMinionInPlay(int strengthLimit) {
+		throw new UnsupportedOperationException("selectMinionInPlay(int)");
+	}
+	
+	public Minion selectMinionInPlay(Base base) {
+		throw new UnsupportedOperationException("selectMinionInPlay(Base)");
+	}
+	
+	public Minion selectMinionInPlay(Base base, int strengthLimit) {
+		throw new UnsupportedOperationException("selectMinionInPlay(Base, int)");
+	}
+	
+	public Class<? extends Minion> selectMinionTypeFromDiscard(String message, boolean optional) {
+		throw new UnsupportedOperationException("selectMinionTypeFromDiscard");
+	}
+	
+	public Integer selectAmount(String message, boolean optional, int max) {
+		throw new UnsupportedOperationException("selectAmount");
 	}
 	
 	public boolean confirm(String message) {
@@ -29,6 +49,22 @@ public abstract class Callback {
 		return new Predicate<T>() {
 			public boolean eval(T arg) {
 				return true;
+			}
+		};
+	}
+	
+	public static Predicate<Minion> minionStrengthPredicate(final int strengthLimit) {
+		return new Predicate<Minion>() {
+			public boolean eval(Minion minion) {
+				return minion.getStrength() <= strengthLimit;
+			}
+		};
+	}
+	
+	public static Predicate<Minion> minionStrengthBasePrediate(final int strengthLimit, final Base base) {
+		return new Predicate<Minion>() {
+			public boolean eval(Minion minion) {
+				return (minion.getStrength() <= strengthLimit) && (minion.getBase() == base);
 			}
 		};
 	}

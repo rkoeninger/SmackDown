@@ -30,7 +30,7 @@ public class AliensTest {
 		assertEquals(0, player1.getHand().size());
 		
 		m2.play(base1, new Callback() {
-			public Minion selectMinionInPlay(String message, boolean optional, Predicate<Minion> pred) {
+			public Minion selectMinionInPlay(Base base, int strengthLimit) {
 				return m1;
 			}
 		});
@@ -77,7 +77,7 @@ public class AliensTest {
 		assertEquals(0, player1.getHand().size());
 		assertEquals(0, player2.getMoves().size());
 		
-		action.play(m1);
+		action.play(m1, new Callback(){});
 		
 		assertEquals(0, base1.getMinions().size());
 		assertEquals(1, player1.getHand().size());
@@ -124,7 +124,7 @@ public class AliensTest {
 		assertEquals(9, base1.getMinions().size());
 		
 		Action action = (Action) new CropCircles().setOwner(player1);
-		action.play(base1);
+		action.play(base1, new Callback(){});
 		
 		assertEquals(2, player1.getHand().size());
 		assertEquals(1, player2.getHand().size());

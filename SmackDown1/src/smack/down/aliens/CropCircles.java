@@ -1,6 +1,7 @@
 package smack.down.aliens;
 
 import smack.down.Base;
+import smack.down.Callback;
 import smack.down.Faction;
 import smack.down.Action;
 import smack.down.Minion;
@@ -11,7 +12,7 @@ public class CropCircles extends Action {
 		super("Crop Circles", Faction.Aliens, Target.Base);
 	}
 	
-	public void play(Base base) {
+	public void play(Base base, Callback callback) {
 		for (Minion minion : base.getMinions())
 			minion.returnToHand();
 	}

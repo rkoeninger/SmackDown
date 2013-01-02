@@ -12,11 +12,7 @@ public class NinjaMaster extends Minion {
 	}
 	
 	public void play(final Base base, Callback callback) {
-		Minion minion = callback.selectMinionInPlay("Select minion to destroy", true, new Callback.Predicate<Minion>() {
-			public boolean eval(Minion minion) {
-				return (minion.getBase() == base);
-			}
-		});
+		Minion minion = callback.selectMinionInPlay(base);
 		
 		if (minion != null)
 			minion.destroy();

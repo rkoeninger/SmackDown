@@ -20,11 +20,7 @@ public class Gnome extends Minion {
 		
 		final int finalMinionCount = myMinionCount;
 		
-		Minion minion = callback.selectMinionInPlay("Select a minion to destroy", true, new Callback.Predicate<Minion>() {
-			public boolean eval(Minion minion) {
-				return (minion.getBase() == base) && (minion.getStrength() < finalMinionCount);
-			}
-		});
+		Minion minion = callback.selectMinionInPlay(base, finalMinionCount + 1);
 		
 		if (minion != null)
 			minion.destroy();

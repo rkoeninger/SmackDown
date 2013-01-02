@@ -30,7 +30,7 @@ public class DinosuarsTest {
 		
 		assertEquals(2, m1.getStrength());
 		
-		action.play(m1);
+		action.play(m1, new Callback(){});
 		
 		assertEquals(6, m1.getStrength());
 		
@@ -70,7 +70,7 @@ public class DinosuarsTest {
 		assertEquals(3, m4.getStrength());
 		assertEquals(6, m5.getStrength());
 		
-		action.play();
+		action.play(new Callback(){});
 		
 		assertEquals(3, m1.getStrength());
 		assertEquals(6, m2.getStrength());
@@ -193,7 +193,7 @@ public class DinosuarsTest {
 		assertFalse(player2.getDiscardPile().contains(m2));
 		
 		m1.play(base1, new Callback() {
-			public Minion selectMinionInPlay(String message, boolean optional, Callback.Predicate<Minion> pred) {
+			public Minion selectMinionInPlay(Base base, int strengthLimit) {
 				return m2;
 			}
 		});
