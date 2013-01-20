@@ -2,9 +2,9 @@ package smack.down.dinosaurs;
 
 import smack.down.Action;
 import smack.down.Callback;
+import smack.down.EffectFactory;
 import smack.down.Faction;
 import smack.down.Minion;
-import smack.down.effects.StrengthEffect;
 
 public class Upgrade extends Action {
 	
@@ -13,6 +13,6 @@ public class Upgrade extends Action {
 	}
 	
 	public void play(Minion minion, Callback callback) {
-		minion.addEffect(new StrengthEffect(minion, 2));
+		EffectFactory.applyStrengthBonus(minion, 2);
 	}
 }

@@ -1,6 +1,7 @@
 package smack.down;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -10,21 +11,32 @@ import smack.down.moves.PlayMinion;
 public class Player {
 	private String name;
 	private int points;
-	private Deck deck;
-	private List<DeckCard> hand;
+	private CardList drawPile;
+	private CardSet discardPile;
+	private CardSet hand;
 	private Table table;
 	private List<Move> moves;
 	private List<Effect> effectsBeginTurnExpire;
 	private List<Effect> effectsEndTurnExpire;
 	
-	public Player(String name, Deck deck, List<DeckCard> hand) {
+	public Player(String name, CardList drawPile, CardSet discardPile, CardSet hand) {
 		this.name = name;
 		this.points = 0;
-		this.deck = deck;
-		this.hand = new ArrayList<DeckCard>(hand);
+		this.drawPile = drawPile;
+		this.discardPile = discardPile;
+		this.hand = hand;
 		this.moves = new ArrayList<Move>();
 		this.effectsBeginTurnExpire = new ArrayList<Effect>();
 		this.effectsEndTurnExpire = new ArrayList<Effect>();
+		
+		for (DeckCard card : drawPile)
+			card.setOwner(this);
+		
+		for (DeckCard card : discardPile)
+			card.setOwner(this);
+		
+		for (DeckCard card : hand)
+			card.setOwner(this);
 	}
 	
 	public String getName() {
@@ -88,31 +100,49 @@ public class Player {
 	}
 	
 	public DeckCard draw() {
-		DeckCard card = deck.draw();
-		hand.add(card);
-		return card;
+		if (drawPile.size() == 0) {
+			if (discardPile.size() == 0)
+				return null;
+			drawPile.takeAndShuffle(discardPile);
+		}
+		return drawPile.peek().putInHand();
 	}
 	
 	public List<DeckCard> draw(int amount) {
-		List<DeckCard> cards = deck.draw(amount);
-		hand.addAll(cards);
+		List<DeckCard> cards = new ArrayList<DeckCard>(amount);
+		
+		while (amount > 0) {
+			DeckCard drawnCard = draw();
+			
+			if (drawnCard == null)
+				break;
+			
+			cards.add(drawnCard);
+			amount--;
+		}
+		
 		return cards;
 	}
 	
 	public DeckCard peek() {
-		return deck.peek();
+		if (drawPile.size() == 0) {
+			if (discardPile.size() == 0)
+				return null;
+			drawPile.takeAndShuffle(discardPile);
+		}
+		return drawPile.peek();
 	}
 	
-	public List<DeckCard> getDrawPile() {
-		return deck.getDrawPile();
+	public CardList getDrawPile() {
+		return drawPile;
 	}
 	
-	public List<DeckCard> getDiscardPile() {
-		return deck.getDiscardPile();
+	public CardSet getDiscardPile() {
+		return discardPile;
 	}
 	
-	public List<DeckCard> getHand() {
-		return new ArrayList<DeckCard>(hand);
+	public CardSet getHand() {
+		return hand;
 	}
 	
 	public void addToHand(DeckCard... cards) {
@@ -122,19 +152,25 @@ public class Player {
 	
 	public void addToDiscard(DeckCard... cards) {
 		for (DeckCard card : cards)
-			deck.addToDiscard(card);
+			discardPile.add(card);
 	}
 	
 	public void removeFromDiscard(DeckCard... cards) {
 		for (DeckCard card : cards)
-			deck.removeFromDiscard(card);
+			discardPile.remove(card);
 	}
 	
 	public void discardRandomCard() {
 		if (hand.size() > 0) {
 			Random rand = new Random();
 			int cardIndex = rand.nextInt(hand.size());
-			hand.remove(cardIndex);
+			Iterator<DeckCard> itr = hand.iterator();
+			DeckCard card = itr.next();
+			
+			for (int i = 0; (i < cardIndex && itr.hasNext()); ++i)
+				card = itr.next();
+			
+			card.discard();
 		}
 	}
 	
@@ -167,7 +203,7 @@ public class Player {
 		while (hand.size() > 10) {
 			DeckCard card = callback.selectCardFromHand("Discard down to 10", false, Callback.truePredicate(new DeckCard[0]));
 			hand.remove(card);
-			deck.addToDiscard(card);
+			addToDiscard(card);
 		}
 		
 		for (Effect effect : effectsEndTurnExpire)

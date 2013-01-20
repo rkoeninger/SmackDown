@@ -26,7 +26,11 @@ public class GameFactory {
 				cards.addAll(Arrays.asList(get(faction)));
 			
 			Collections.shuffle(cards);
-			Player player = new Player(info.name, new Deck(cards), new ArrayList<DeckCard>());
+			Player player = new Player(
+				info.name,
+				new CardList(cards.toArray(new DeckCard[0])),
+				new CardSet(),
+				new CardSet());
 			
 			for (DeckCard card : cards)
 				card.setOwner(player);

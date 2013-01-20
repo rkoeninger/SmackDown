@@ -3,27 +3,42 @@ package smack.down;
 import java.util.ArrayList;
 import java.util.List;
 
-import smack.down.effects.StrengthEffect;
-
 public class Minion extends DeckCard {
+	public static class StrengthBonus {
+		private int amount;
+		
+		public StrengthBonus(int amount) {
+			this.amount = amount;
+		}
+		
+		public int getAmount() {
+			return amount;
+		}
+	}
+	
 	private int strength;
 	private Base base = null;
+	private List<StrengthBonus> bonuses;
 	private List<Effect> effects;
 	
 	public Minion(String name, Faction faction, int strength) {
 		super(name, faction);
 		this.strength = strength;
+		this.bonuses = new ArrayList<StrengthBonus>();
 		this.effects = new ArrayList<Effect>();
 	}
 	
 	public int getStrength() {
-		int bonus = 0;
+		int totalBonus = 0;
 		
-		for (Effect effect : effects)
-			if (effect instanceof StrengthEffect)
-				bonus += ((StrengthEffect) effect).getAmount();
+		for (StrengthBonus bonus : bonuses)
+			totalBonus += bonus.getAmount();
 		
-		return strength + bonus;
+		return strength + totalBonus;
+	}
+	
+	public Minion setOwner(Player owner) {
+		return (Minion) super.setOwner(owner);
 	}
 	
 	public void addEffect(Effect effect) {
@@ -36,10 +51,27 @@ public class Minion extends DeckCard {
 	
 	public void clear() {
 		effects.clear();
+		bonuses.clear();
+	}
+	
+	public void addStrengthBonus(StrengthBonus bonus) {
+		bonuses.add(bonus);
+	}
+	
+	public void removeStrengthBonus(StrengthBonus bonus) {
+		bonuses.remove(bonus);
 	}
 	
 	public Minion setBase(Base base) {
+		Base oldBase = this.base;
 		this.base = base;
+		
+		if ((oldBase != null) && (oldBase.hasMinion(this)))
+			oldBase.removeMinion(this);
+		
+		if ((base != null) && (! base.hasMinion(this)))
+			base.addMinion(this);
+		
 		return this;
 	}
 	

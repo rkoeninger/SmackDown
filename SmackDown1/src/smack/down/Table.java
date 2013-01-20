@@ -14,6 +14,9 @@ public class Table {
 		this.players = new ArrayList<Player>(players);
 		this.baseDeck = new ArrayList<Base>(baseDeck);
 		this.bases = new ArrayList<Base>(bases);
+		
+		for (Player player : players)
+			player.setTable(this);
 	}
 	
 	public Player nextPlayer() {

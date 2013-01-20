@@ -10,8 +10,8 @@ import org.junit.Test;
 import smack.down.Action;
 import smack.down.Base;
 import smack.down.Callback;
-import smack.down.Deck;
-import smack.down.DeckCard;
+import smack.down.CardList;
+import smack.down.CardSet;
 import smack.down.Faction;
 import smack.down.Minion;
 import smack.down.Player;
@@ -22,7 +22,7 @@ public class DinosuarsTest {
 
 	@Test
 	public void testAugmentation() {
-		Player player1 = new Player("TestPlayer", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer", new CardList(), new CardSet(), new CardSet());
 		Minion m1 = new Minion("TestMinion", Faction.Aliens, 2);
 		m1.setOwner(player1);
 		Action action = new Augmentation();
@@ -41,7 +41,7 @@ public class DinosuarsTest {
 	
 	@Test
 	public void testHowl() {
-		Player player1 = new Player("TestPlayer", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer", new CardList(), new CardSet(), new CardSet());
 		Minion m1 = new Minion("TestMinion1", Faction.Aliens, 2);
 		m1.setOwner(player1);
 		Minion m2 = new Minion("TestMinion2", Faction.Aliens, 5);
@@ -89,7 +89,7 @@ public class DinosuarsTest {
 	
 	@Test
 	public void testWarRaptor() {
-		Player player1 = new Player("TestPlayer", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer", new CardList(), new CardSet(), new CardSet());
 		Base base1 = new Base("TestBase", Faction.Aliens, 50, 3, 2, 1);
 		Minion m1 = (Minion) new WarRaptor().setOwner(player1);
 		Minion m2 = (Minion) new WarRaptor().setOwner(player1);
@@ -150,8 +150,8 @@ public class DinosuarsTest {
 	
 	@Test
 	public void testArmorStego() {
-		Player player1 = new Player("TestPlayer1", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("TestPlayer2", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer1", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("TestPlayer2", new CardList(), new CardSet(), new CardSet());
 		Base base1 = new Base("TestBase", Faction.Aliens, 50, 3, 2, 1);
 		Minion m1 = (Minion) new ArmorStego().setOwner(player1);
 		
@@ -177,8 +177,8 @@ public class DinosuarsTest {
 	
 	@Test
 	public void testLaseratops() {
-		Player player1 = new Player("TestPlayer1", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("TestPlayer2", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer1", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("TestPlayer2", new CardList(), new CardSet(), new CardSet());
 		Base base1 = new Base("TestBase", Faction.Aliens, 50, 3, 2, 1);
 		Table table = new Table(Arrays.asList(player1, player2), new ArrayList<Base>(), Arrays.asList(base1));
 		player1.setTable(table);

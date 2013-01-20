@@ -8,12 +8,12 @@ import java.util.Map;
 
 public class Base extends Card {
 	private int cap;
-	private List<Minion> minions;
+	private List<DeckCard> cards;
 	private int score1, score2, score3;
 	
 	public Base(String name, Faction faction, int cap, int score1, int score2, int score3) {
 		super(name, faction);
-		this.minions = new ArrayList<Minion>();
+		this.cards = new ArrayList<DeckCard>();
 		this.cap = cap;
 		this.score1 = score1;
 		this.score2 = score2;
@@ -21,13 +21,19 @@ public class Base extends Card {
 	}
 	
 	public List<Minion> getMinions() {
-		return new ArrayList<Minion>(minions);
+		List<Minion> minions = new ArrayList<Minion>();
+		
+		for (DeckCard card : cards)
+			if (card instanceof Minion)
+				minions.add((Minion) card);
+		
+		return minions;
 	}
 	
 	public List<Minion> getMinions(Player player) {
 		List<Minion> playersMinions = new ArrayList<Minion>();
 		
-		for (Minion minion : minions)
+		for (Minion minion : getMinions())
 			if (minion.getOwner() == player)
 				playersMinions.add(minion);
 		
@@ -35,12 +41,25 @@ public class Base extends Card {
 	}
 	
 	public Base addMinion(Minion minion) {
-		minions.add(minion);
+		cards.add(minion);
+		
+		if (minion.getBase() != this)
+			minion.setBase(this);
+		
 		return this;
 	}
 	
-	public boolean removeMinion(Minion minion) {
-		return minions.remove(minion);
+	public Base removeMinion(Minion minion) {
+		cards.remove(minion);
+		
+		if (minion.getBase() == this)
+			minion.setBase(null);
+		
+		return this;
+	}
+	
+	public boolean hasMinion(Minion minion) {
+		return cards.contains(minion);
 	}
 	
 	public int getCap() {
@@ -62,7 +81,7 @@ public class Base extends Card {
 	public int getTotalStrength() {
 		int strength = 0;
 		
-		for (Minion minion : minions)
+		for (Minion minion : getMinions())
 			strength += minion.getStrength();
 		
 		return strength;
@@ -71,7 +90,7 @@ public class Base extends Card {
 	public int getTotalStrength(Player player) {
 		int strength = 0;
 		
-		for (Minion minion : minions)
+		for (Minion minion : getMinions())
 			if (player.equals(minion.getOwner()))
 				strength += minion.getStrength();
 		
@@ -85,7 +104,7 @@ public class Base extends Card {
 	public Map<Player, Integer> getScores() {
 		Map<Player, Integer> strengths = new HashMap<Player, Integer>();
 		
-		for (Minion m : minions) {
+		for (Minion m : getMinions()) {
 			if (m.getOwner() != null) {
 				if (strengths.containsKey(m.getOwner())) {
 					strengths.put(m.getOwner(), strengths.get(m.getOwner()) + m.getStrength());
@@ -131,12 +150,12 @@ public class Base extends Card {
 	}
 	
 	public Base clear() {
-		for (Minion m : minions) {
+		for (Minion m : getMinions()) {
 			m.setBase(null);
 			m.discard();
 		}
 		
-		minions.clear();
+		cards.clear();
 		return this;
 	}
 }

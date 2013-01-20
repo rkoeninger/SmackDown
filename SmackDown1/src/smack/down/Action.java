@@ -12,6 +12,10 @@ public class Action extends DeckCard {
 		this.target = target;
 	}
 	
+	public Action setOwner(Player owner) {
+		return (Action) super.setOwner(owner);
+	}
+	
 	public Target getTarget() {
 		return target;
 	}

@@ -2,7 +2,6 @@ package smack.down.test;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.junit.Test;
@@ -12,7 +11,7 @@ public class BaseScoringTest {
 	
 	@Test
 	public void onePlayer() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -31,8 +30,8 @@ public class BaseScoringTest {
 	
 	@Test
 	public void twoPlayersUnevenScore() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -54,8 +53,8 @@ public class BaseScoringTest {
 	
 	@Test
 	public void twoPlayersEvenScore() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m3 = (Minion) new Minion("", Faction.Aliens, 5).setOwner(player1);
@@ -73,9 +72,9 @@ public class BaseScoringTest {
 	
 	@Test
 	public void threePlayersUnevenScore() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -101,9 +100,9 @@ public class BaseScoringTest {
 	
 	@Test
 	public void threePlayers2WayTieForFirst() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -129,9 +128,9 @@ public class BaseScoringTest {
 	
 	@Test
 	public void threePlayers2WayTieForSecond() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -156,9 +155,9 @@ public class BaseScoringTest {
 	
 	@Test
 	public void threePlayers3WayTie() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m3 = (Minion) new Minion("", Faction.Aliens, 5).setOwner(player1);
@@ -182,10 +181,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayersUnevenScore() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -215,10 +214,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers2WayTieForFirst() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -248,10 +247,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers2WayTieForSecond() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -280,10 +279,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers2WayTieForThird() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -311,10 +310,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers3WayTieForFirst() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -345,10 +344,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers3WayTieForSecond() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -380,11 +379,11 @@ public class BaseScoringTest {
 	}
 	
 	@Test
-	public void fourPlayers3WayTieForFirstAndSecond() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+	public void fourPlayers2WayTieForFirstAndSecond() {
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
@@ -418,10 +417,10 @@ public class BaseScoringTest {
 	
 	@Test
 	public void fourPlayers4WayTie() {
-		Player player1 = new Player("Rob", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("Joe", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player3 = new Player("Don", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player4 = new Player("Zac", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("Rob", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("Joe", new CardList(), new CardSet(), new CardSet());
+		Player player3 = new Player("Don", new CardList(), new CardSet(), new CardSet());
+		Player player4 = new Player("Zac", new CardList(), new CardSet(), new CardSet());
 		Base base = new Base("TestBase", Faction.Aliens, 12, 3, 2, 1);
 		Minion m1 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);
 		Minion m2 = (Minion) new Minion("", Faction.Aliens, 2).setOwner(player1);

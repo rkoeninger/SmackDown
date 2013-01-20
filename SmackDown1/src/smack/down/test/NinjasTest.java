@@ -13,8 +13,8 @@ public class NinjasTest {
 
 	@Test
 	public void testNinjaMaster() {
-		Player player1 = new Player("TestPlayer1", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
-		Player player2 = new Player("TestPlayer2", new Deck(new ArrayList<DeckCard>()), new ArrayList<DeckCard>());
+		Player player1 = new Player("TestPlayer1", new CardList(), new CardSet(), new CardSet());
+		Player player2 = new Player("TestPlayer2", new CardList(), new CardSet(), new CardSet());
 		Base base1 = new Base("TestBase", Faction.Aliens, 100, 3, 2, 1);
 		Table table = new Table(Arrays.asList(player1, player2), new ArrayList<Base>(), Arrays.asList(base1));
 		player1.setTable(table);
