@@ -38,14 +38,14 @@ public abstract class DeckCard extends Card {
 		if (owner == null)
 			throw new RuntimeException("no owner");
 		
-		owner.addToDiscard(this);
+		owner.getDiscardPile().add(this);
 	}
 	
 	public DeckCard putInHand() {
 		if (owner == null)
 			throw new RuntimeException("no owner");
 		
-		owner.addToHand(this);
+		owner.getHand().add(this);
 		return this;
 	}
 }

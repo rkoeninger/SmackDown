@@ -96,11 +96,11 @@ public class Minion extends DeckCard {
 		base.removeMinion(this);
 		setBase(null);
 		expireEffects();
-		getOwner().addToHand(this);
+		getOwner().getHand().add(this);
 	}
 	
 	public void destroy() {
-		getOwner().addToDiscard(this);
+		getOwner().getDiscardPile().add(this);
 		base.removeMinion(this);
 		setBase(null);
 		expireEffects();

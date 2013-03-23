@@ -1,4 +1,4 @@
-package smack.down.dinosaurs;
+package smack.down.pirates;
 
 import smack.down.Action;
 import smack.down.Callback;
@@ -6,10 +6,10 @@ import smack.down.EffectFactory;
 import smack.down.Faction;
 import smack.down.Minion;
 
-public class Howl extends Action {
-	
-	public Howl() {
-		super("Howl", Faction.Dinosaurs, Target.General);
+public class Swashbuckling extends Action{
+
+	public Swashbuckling() {
+		super("Swashbuckling", Faction.Pirates, Target.General);
 	}
 	
 	public void play(Callback callback) {

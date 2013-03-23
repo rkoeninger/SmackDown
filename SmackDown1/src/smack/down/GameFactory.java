@@ -123,7 +123,7 @@ public class GameFactory {
 		return new DeckCard[] {
 			new FirstMate(), new FirstMate(), new FirstMate(),
 			new SaucyWench(), new SaucyWench(),
-			new Buchaneer(), new Buchaneer(),
+			new Buccaneer(), new Buccaneer(),
 			new PirateKing()
 		};
 	}

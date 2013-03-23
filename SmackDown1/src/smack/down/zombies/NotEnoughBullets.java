@@ -33,8 +33,7 @@ public class NotEnoughBullets extends Action {
 			return;
 		
 		while (amount > 0) {
-			getOwner().removeFromDiscard(minions.get(amount - 1));
-			getOwner().addToHand(minions.get(amount - 1));
+			getOwner().getHand().add(minions.get(amount - 1));
 			amount--;
 		}
 	}

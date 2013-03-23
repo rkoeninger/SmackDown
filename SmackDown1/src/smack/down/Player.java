@@ -145,21 +145,6 @@ public class Player {
 		return hand;
 	}
 	
-	public void addToHand(DeckCard... cards) {
-		for (DeckCard card : cards)
-			hand.add(card);
-	}
-	
-	public void addToDiscard(DeckCard... cards) {
-		for (DeckCard card : cards)
-			discardPile.add(card);
-	}
-	
-	public void removeFromDiscard(DeckCard... cards) {
-		for (DeckCard card : cards)
-			discardPile.remove(card);
-	}
-	
 	public void discardRandomCard() {
 		if (hand.size() > 0) {
 			Random rand = new Random();
@@ -203,7 +188,7 @@ public class Player {
 		while (hand.size() > 10) {
 			DeckCard card = callback.selectCardFromHand("Discard down to 10", false, Callback.truePredicate(new DeckCard[0]));
 			hand.remove(card);
-			addToDiscard(card);
+			discardPile.add(card);
 		}
 		
 		for (Effect effect : effectsEndTurnExpire)

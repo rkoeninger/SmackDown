@@ -37,6 +37,10 @@ public abstract class Callback {
 		throw new UnsupportedOperationException("selectAmount");
 	}
 	
+	public Faction selectFaction() {
+		throw new UnsupportedOperationException("selectFaction");
+	}
+	
 	public boolean confirm(String message) {
 		throw new UnsupportedOperationException("confirm");
 	}
@@ -49,6 +53,14 @@ public abstract class Callback {
 		return new Predicate<T>() {
 			public boolean eval(T arg) {
 				return true;
+			}
+		};
+	}
+	
+	public static Predicate<Base> anyOtherBase(final Base base) {
+		return new Predicate<Base>() {
+			public boolean eval(Base arg) {
+				return arg != base;
 			}
 		};
 	}
