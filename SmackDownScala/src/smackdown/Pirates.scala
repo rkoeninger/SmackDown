@@ -22,7 +22,7 @@ class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), tabl
   // The runner-up may move one of his or her minions to the base that replaces this base.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(x => x._2._2 == 2 && minions.exists(_.owner == x._1)).map(_._1)) {
-      p.callback.selectMinion(m => m.owner == p && m.base.isDefined && m.base.get == this).map(_.moveToBase(newBase))
+      p.callback.selectMinion(m => m.owner == p && m.base.isDefined && m.base.get == this).foreach(_.moveToBase(newBase))
     }
   }
 }
@@ -56,14 +56,14 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
 class SaucyWench(owner: Player) extends Minion("Saucy Wench", Pirates, 3, owner) {
   // You may destory a minion power 2 or less on this base.
   override def play(base: Base) {
-    owner.callback.selectMinion(m => m.strength <= 2 && m.base == Some(base)).map(_.destroy(owner))
+    owner.callback.selectMinion(m => m.strength <= 2 && m.base == Some(base)).foreach(_.destroy(owner))
   }
 }
 
 class Buccaneer(owner: Player) extends Minion("Buccaneer", Pirates, 4, owner) {
   // Special: If this minion would be destroyed, move it to another base instead.
   override def destroy(destroyer: Player) {
-    owner.callback.selectBase(Some(_) != base).map(moveToBase(_))
+    owner.callback.selectBase(Some(_) != base).foreach(moveToBase(_))
   }
 }
 
@@ -97,7 +97,7 @@ class Cannon(owner: Player) extends Action("Cannon", Pirates, owner) {
     while (minionsDestroyed < 2) {
       val m = user.callback.selectMinion(_.owner == user)
       if (m.isEmpty) return
-      m.map(_.destroy(user))
+      m.foreach(_.destroy(user))
       minionsDestroyed += 1
     }
   }
@@ -174,8 +174,6 @@ class Shanghai(owner: Player) extends Action("Shanghai", Pirates, owner) {
 class Swashbuckling(owner: Player) extends Action("Swashbuckling", Pirates, owner) {
   // Each of your minions gains +1 until end of turn.
   override def play(user: Player) {
-    val bonus = Bonus(1)
-    user.bonuses += bonus
-    user.expireOnTurnEnd += Effect { user.bonuses -= bonus }
+    Bonus.untilTurnEnd(user, 1)
   }
 }

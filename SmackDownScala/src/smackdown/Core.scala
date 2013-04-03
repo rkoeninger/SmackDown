@@ -10,46 +10,56 @@ class Table {
 }
 
 class Player(val name: String, val factions: List[Faction], val table: Table, val callback: Callback) {
-  var points = 0
+  var points = 0 // TODO: player/callback needs pointsModified event
   var hand = Set[DeckCard]()
   var discardPile = Set[DeckCard]()
   var drawPile = List[DeckCard]()
-  var expireOnTurnBegin = Set[Effect]()
-  var expireOnTurnEnd = Set[Effect]()
   var bonuses = Set[Bonus]()
   var moves = Set[Move]()
+  var onTurnBeginSet = Set[Unit => Unit]()
+  var onTurnEndSet = Set[Unit => Unit]()
+  
+  def onTurnBegin(todo: => Unit) { onTurnBeginSet += (_ => todo) }
+  
+  def onTurnEnd(todo: => Unit) { onTurnEndSet += (_ => todo) }
   
   def minionsInPlay() = table.basesInPlay.flatMap(_.minions).filter(_.owner == this)
   
   def beginTurn() {
     moves = Set(new PlayMinion(), new PlayAction())
     
-    expireOnTurnBegin.map(_.expire)
-    expireOnTurnBegin = Set[Effect]()
+    onTurnBeginSet.foreach(_.apply())
+    onTurnBeginSet = Set[Unit => Unit]()
   }
   
   def endTurn() {
     moves = Set()
     
-    expireOnTurnEnd.map(_.expire)
-    expireOnTurnEnd = Set[Effect]()
+    onTurnEndSet.foreach(_.apply())
+    onTurnEndSet = Set[Unit => Unit]()
     
     draw(2)
     
     while (hand.size > 10)
-      callback.selectFromHand().map(_.moveToDiscard)
+      callback.select(hand).foreach(_.moveToDiscard)
   }
   
   def draw() {
-    if (replenishDrawPile) drawPile(0).moveToHand
+    if (replenishDrawPile) { if (! drawPile.isEmpty) drawPile(0).moveToHand }
   }
   
   def draw(count: Int) {
-    (1 to count) foreach draw
+    (1 to count).foreach(x => draw)
+    // without the x =>, the draw(Int) version will be used, causing infinite loop
   }
   
+  // TODO: player/callback needs cardRevealed event
   def reveal() = {
     if (replenishDrawPile) Some(drawPile(0)) else None
+  }
+  
+  def shuffle() {
+    drawPile = Random.shuffle(drawPile)
   }
   
   private def replenishDrawPile(): Boolean = {
@@ -73,14 +83,18 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
 }
 
+// TODO: callback needs function that take a list of options, not predicates
 trait Callback {
-  def selectBase(predicate: Base => Boolean): Option[Base]
-  def selectMinion(predicate: Minion => Boolean): Option[Minion]
-  def selectAction(predicate: Action => Boolean): Option[Action]
-  def selectFaction(): Option[Faction]
-  def selectPlayer(predicate: Player => Boolean): Option[Player]
-  def selectFromHand(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard]
-  def selectBoolean(): Boolean
+  def selectBase(predicate: Base => Boolean): Option[Base] = None
+  def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
+  def selectAction(predicate: Action => Boolean): Option[Action] = None
+  def selectFaction(): Option[Faction] = None
+  def selectPlayer(predicate: Player => Boolean): Option[Player] = None
+  def selectFromHand(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
+  def select(cards: Set[DeckCard]): Option[DeckCard] = None
+  def selectFromDiscard(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
+  def selectFromDrawPile(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
+  def selectBoolean(): Boolean = false
 }
 
 abstract class Faction(val name: String) {
@@ -211,6 +225,16 @@ trait Bonus {
 object Bonus {
   def apply(func: Minion => Int) = new Bonus { def getBonus(minion: Minion) = func(minion) }
   def apply(value: Int) = new Bonus { def getBonus(minion: Minion) = value }
+  def untilTurnEnd(player: Player, value: Int) {
+    val bonus = Bonus(value)
+    player.bonuses += bonus
+    player.onTurnEnd { player.bonuses -= bonus }
+  }
+  def untilTurnEnd(minion: Minion, value: Int) {
+    val bonus = Bonus(value)
+    minion.bonuses += bonus
+    minion.owner.onTurnEnd { minion.bonuses -= bonus }
+  }
 }
 
 trait Effect {

@@ -3,15 +3,7 @@ package smackdown.test
 import smackdown.{Action, Base, Callback, DeckCard, Faction, Minion, Player, Table}
 import org.scalatest.FunSpec
 
-class TestCallback extends Callback {
-  def selectBase(predicate: Base => Boolean): Option[Base] = None
-  def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
-  def selectAction(predicate: Action => Boolean): Option[Action] = None
-  def selectFaction(): Option[Faction] = None
-  def selectPlayer(predicate: Player => Boolean): Option[Player] = None
-  def selectFromHand(predicate: DeckCard => Boolean): Option[DeckCard] = None
-  def selectBoolean(): Boolean = false
-}
+class TestCallback extends Callback
 
 object TestFaction extends Faction("TestFaction") {
   def bases(table: Table) = List[Base]()

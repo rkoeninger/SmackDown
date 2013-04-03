@@ -31,11 +31,12 @@ class Factory2341337(table: Table) extends Base("Factory 234-1337", Robots, 25, 
 
 abstract class Microbot(name: String, owner: Player) extends Minion(name, Robots, 1, owner) {
   def alphaInPlay() = owner.minionsInPlay.exists(_.isInstanceOf[MicrobotAlpha])
+  def isMicrobot(minion: Minion) = minion.isInstanceOf[Microbot] || alphaInPlay
 }
 
 class MicrobotAlpha(owner: Player) extends Microbot("Microbot Alpha", owner) {
   // Gains +1 for each other Microbot in play. All of your minions are considered microbots
-  override def strength() = super.strength + (owner.minionsInPlay - this).size
+  override def strength() = super.strength + (owner.minionsInPlay - this).count(isMicrobot(_))
 }
 
 class MicrobotArchive(owner: Player) extends Microbot("Microbot Archive", owner) {
@@ -46,7 +47,7 @@ class MicrobotArchive(owner: Player) extends Microbot("Microbot Archive", owner)
 class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
   // If this is the first minion you played this turn, you may play an extra minion.
   // All microbots gain +1
-  val microbotBonus = Bonus(m => if (m.isInstanceOf[Microbot] || alphaInPlay) 1 else 0)
+  val microbotBonus = Bonus(m => if (isMicrobot(m)) 1 else 0)
   override def play(base: Base) {
     owner.bonuses += microbotBonus
   }
@@ -65,6 +66,7 @@ class MicrobotGuard(owner: Player) extends Microbot("Microbot Guard", owner) {
 
 class MicrobotReclaimer(owner: Player) extends Microbot("Microbot Reclaimer", owner)
   // If this is the first minion you played this turn, you may play an extra minion.
+  // TODO: player/table needs a move history
   // You may reshuffle any number of microbots from your discard into your deck.
 
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
