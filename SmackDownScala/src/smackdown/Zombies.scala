@@ -1,5 +1,7 @@
 package smackdown
 
+import Utils._
+
 object Zombies extends Faction("Zombies") {
   override def bases(table: Table) = List[Base](new RhodesPlazaMall(table), new EvansCityCemetery(table))
   override def cards(owner: Player) = List[DeckCard](
@@ -49,7 +51,7 @@ class TenaciousZ(owner: Player) extends Minion("Tenacious Z", Zombies, 2, owner)
 class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owner) {
   // You may place a minion from your discard into your hand
   override def play(base: Base) {
-    owner.callback.selectFromDiscard(_.isInstanceOf[Minion]).foreach(_.moveToHand)
+    owner.callback.select(owner.discardPile.filterType[Minion]).foreach(_.moveToHand)
   }
 }
 
@@ -70,7 +72,7 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
   // and put them in your discard
   // shuffle your deck
   override def play(user: Player) {
-    user.callback.selectFromDrawPile(_.isInstanceOf[Minion]).foreach(m => {
+    user.callback.select(user.drawPile.filterType[Minion]).foreach(m => {
       user.drawPile.filter(_.getClass == m.getClass).foreach(_.moveToHand)
     })
   }
@@ -79,7 +81,7 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
 class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner) {
   // Place a card from your discard into your hand
   override def play(user: Player) {
-    user.callback.selectFromDiscard().foreach(_.moveToHand)
+    user.callback.select(user.discardPile).foreach(_.moveToHand)
   }
 }
 
@@ -90,7 +92,7 @@ class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, 
 class NotEnoughBullets(owner: Player) extends Action("Not Enough Bullets", Zombies, owner) {
   // select a minion from your discard, take all copies of that minion and put them into your hand
   override def play(user: Player) {
-    user.callback.selectFromDiscard(_.isInstanceOf[Minion]).foreach(m => {
+    user.callback.select(owner.discardPile.filterType[Minion]).foreach(m => {
       user.discardPile.filter(_.getClass == m.getClass).foreach(_.moveToHand)
     })
   }

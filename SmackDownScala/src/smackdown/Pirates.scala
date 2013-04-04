@@ -56,7 +56,7 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
 class SaucyWench(owner: Player) extends Minion("Saucy Wench", Pirates, 3, owner) {
   // You may destory a minion power 2 or less on this base.
   override def play(base: Base) {
-    owner.callback.selectMinion(m => m.strength <= 2 && m.base == Some(base)).foreach(_.destroy(owner))
+    owner.callback.selectMinion(m => m.destructable && m.strength <= 2 && m.base == Some(base)).foreach(_.destroy(owner))
   }
 }
 
@@ -85,7 +85,7 @@ class Broadside(owner: Player) extends Action("Broadside", Pirates, owner) {
     if (b.isEmpty) return
     val p = user.callback.selectPlayer(p => true)
     if (p.isEmpty) return
-    val ms = b.get.minions.filter(m => m.owner == p && m.strength <= 2)
+    val ms = b.get.minions.filter(m => m.destructable && m.owner == p && m.strength <= 2)
     ms.foreach(_.destroy(user))
   }
 }
@@ -97,7 +97,7 @@ class Cannon(owner: Player) extends Action("Cannon", Pirates, owner) {
     while (minionsDestroyed < 2) {
       val m = user.callback.selectMinion(_.owner == user)
       if (m.isEmpty) return
-      m.foreach(_.destroy(user))
+      m.filter(_.destructable).foreach(_.destroy(user))
       minionsDestroyed += 1
     }
   }
@@ -143,7 +143,7 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
     val b = m.get.base
     val s = m.get.strength
     m.get.destroy(user)
-    b.get.minions.filter(_.strength <= s).foreach(_.destroy(user))
+    b.get.minions.filter(m => m.destructable && m.strength <= s).foreach(_.destroy(user))
   }
 }
 

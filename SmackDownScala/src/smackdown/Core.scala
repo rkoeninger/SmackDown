@@ -1,6 +1,7 @@
 package smackdown
 
 import scala.util.Random
+import Utils._
 
 class Table {
   var players = List[Player]()
@@ -91,10 +92,9 @@ trait Callback {
   def selectFaction(): Option[Faction] = None
   def selectPlayer(predicate: Player => Boolean): Option[Player] = None
   def selectFromHand(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
-  def select(cards: Set[DeckCard]): Option[DeckCard] = None
-  def selectFromDiscard(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
-  def selectFromDrawPile(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
   def selectBoolean(): Boolean = false
+  def select(cards: Set[DeckCard]): Option[DeckCard] = None
+  def select(cards: List[DeckCard]): Option[DeckCard] = select(cards.toSet)
 }
 
 abstract class Faction(val name: String) {
@@ -107,8 +107,8 @@ abstract class Card(val name: String, val faction: Faction)
 class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues: (Int, Int, Int), val table: Table) extends Card(name, faction) {
   
   var cards = Set[DeckCard]()
-  def minions() = cards.filter(_.isInstanceOf[Minion]).map(_.asInstanceOf[Minion]).toSet
-  def actions() = cards.filter(_.isInstanceOf[Action]).map(_.asInstanceOf[Action]).toSet
+  def minions() = cards.ofType[Minion]
+  def actions() = cards.ofType[Minion]
   var bonuses = Set[Bonus]()
   
   def totalStrength() = minions.map(_.strength).sum
@@ -137,7 +137,7 @@ class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues:
     
     val rewards = sortedStrengths.map(strength =>
       if (rewardCount < 3) {
-        val reward = scoreValues.productElement(rewardCount).asInstanceOf[Int]
+        val reward = scoreValues.productElement(rewardCount).as[Int]
         val rewardGroup = playerStrengths.filter(_._2 == strength).map(_._1 -> (reward, rewardRank))
         rewardCount += rewardGroup.size
         rewardRank += 1
@@ -205,8 +205,9 @@ class Minion(name: String, faction: Faction, startingStrength: Int, owner: Playe
     + (if (isOnBase) owner.bonuses.map(_.getBonus(this)).sum else 0)
     + base.map(_.bonuses.map(_.getBonus(this)).sum).getOrElse(0)
   def play(base: Base) {}
+  def destructable() = true
   def destroy(destroyer: Player) {
-    moveToDiscard
+    if (destructable) moveToDiscard
   }
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}
@@ -251,7 +252,7 @@ trait Move {
 }
 
 class PlayMinion extends Move {
-  def isPlayable(user: Player) = user.hand.exists(_.isInstanceOf[Minion])
+  def isPlayable(user: Player) = user.hand.exists(_.is[Minion])
   def play(user: Player, callback: Callback) {
     val m = callback.selectMinion(user.hand.contains(_))
     if (m.isEmpty) return
@@ -263,7 +264,7 @@ class PlayMinion extends Move {
 }
 
 class PlayAction extends Move {
-  def isPlayable(user: Player) = user.hand.exists(_.isInstanceOf[Action])
+  def isPlayable(user: Player) = user.hand.exists(_.is[Action])
   def play(user: Player, callback: Callback) {
     val a = callback.selectAction(user.hand.contains(_))
     if (a.isEmpty) return

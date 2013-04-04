@@ -1,5 +1,7 @@
 package smackdown
 
+import Utils._
+
 object Robots extends Faction("Robots") {
   override def bases(table: Table) = List(new CentralBrain(table), new Factory2341337(table))
   override def cards(owner: Player) = List(
@@ -30,8 +32,7 @@ class Factory2341337(table: Table) extends Base("Factory 234-1337", Robots, 25, 
 }
 
 abstract class Microbot(name: String, owner: Player) extends Minion(name, Robots, 1, owner) {
-  def alphaInPlay() = owner.minionsInPlay.exists(_.isInstanceOf[MicrobotAlpha])
-  def isMicrobot(minion: Minion) = minion.isInstanceOf[Microbot] || alphaInPlay
+  def isMicrobot(minion: Minion) = minion.is[Microbot] || owner.minionsInPlay.exists(_.is[MicrobotAlpha])
 }
 
 class MicrobotAlpha(owner: Player) extends Microbot("Microbot Alpha", owner) {
@@ -59,7 +60,7 @@ class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
 class MicrobotGuard(owner: Player) extends Microbot("Microbot Guard", owner) {
   // Destroy a minion on this base with power less than the number of minions you have on this base
   override def play(base: Base) {
-    owner.callback.selectMinion(m => m.isOnBase(base) && m.strength < base.minions.count(_.owner == owner)).map(_.destroy(owner))
+    owner.callback.selectMinion(m => m.destructable && m.isOnBase(base) && m.strength < base.minions.count(_.owner == owner)).map(_.destroy(owner))
     // TODO: must destroy if possible even if only option belongs to the owner
   }
 }
@@ -72,7 +73,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Microbot Reclaimer", ow
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
   // You may play an extra minion power 2 or less
   override def play(base: Base) {
-    val m = owner.callback.selectFromHand(_.isInstanceOf[Minion])
+    val m = owner.callback.selectFromHand(_.is[Minion])
     // ... select a base, etc...
     // TODO: need a function on Callback for this (playing a minion) 
   }
@@ -91,16 +92,13 @@ class Hoverbot(owner: Player) extends Minion("Hoverbot", Robots, 3, owner) {
 
 class Warbot(owner: Player) extends Minion("Warbot", Robots, 4, owner) {
   // This minion cannot be destroyed
-  override def destroy(destroyer: Player) {
-    // do nothing
-    // TODO: have a way as marking this minion as indestructable
-  }
+  override def destructable = false
 }
 
 class Nukebot(owner: Player) extends Minion("Nukebot", Robots, 5, owner) {
   // When this minion is destroyed, destroy all other player's minions on this base
   override def destroy(destroyer: Player) {
-    base.map(_.minions.filter(_.owner != owner).map(_.destroy(owner)))
+    base.map(_.minions.filter(m => m.destructable && m.owner != owner).map(_.destroy(owner)))
   }
 }
 
