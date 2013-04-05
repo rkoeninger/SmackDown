@@ -148,7 +148,7 @@ class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
 class Shanghai(owner: Player) extends Action("Shanghai", Pirates, owner) {
   // Move an opponent's minion to another base.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(m => m.base.isDefined && m.owner != user);
+    for (m <- user.callback.selectMinion(table.minions.notOwnedBy(user));
          b <- user.callback.selectBase(Some(_) != m.base))
       m.moveToBase(b)
   }

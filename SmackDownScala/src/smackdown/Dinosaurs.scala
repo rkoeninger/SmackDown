@@ -48,7 +48,7 @@ class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owne
 class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosaurs, owner) {
   // Choose one of your minions on a base. Destroy a minion there with power less then yours.
   override def play(user: Player) {
-    for (m0 <- user.callback.selectMinion(table.minions);
+    for (m0 <- user.callback.selectMinion(table.minions.ownedBy(user));
          b <- m0.base;
          m1 <- user.callback.selectMinion(b.minions.destructable.maxStrength(m0.strength - 1)))
       m1.destroy(user)

@@ -42,6 +42,7 @@ object Utils {
   implicit def minionSetEnhance(ms: Set[Minion]) = new {
     def destructable() = ms.filter(_.destructable)
     def ownedBy(p: Player) = ms.filter(_.owner == p)
+    def notOwnedBy(p: Player) = ms.filter(_.owner != p)
     def maxStrength(max: Int) = ms.filter(_.strength <= max)
   }
   implicit def deckCardSetEnhance(dcs: Set[DeckCard]) = new {
