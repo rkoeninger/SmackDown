@@ -58,6 +58,7 @@ class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owne
 class ZombieLord(owner: Player) extends Minion("Zombie Lord", Zombies, 5, owner)
 // You may play an extra minion from your discard on each base where you have no minion
 
+// TODO: is it "Lend a Hand" or "Fresh Bodies"?
 class LendAHand(owner: Player) extends Action("Lend a Hand", Zombies, owner) {
   // Suffle any number of cards from your discard into your deck
 }

@@ -59,6 +59,7 @@ class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
 
 class MicrobotGuard(owner: Player) extends Microbot("Microbot Guard", owner) {
   // Destroy a minion on this base with power less than the number of minions you have on this base
+  // TODO: does that include this Microbot Guard?
   override def play(base: Base) {
     owner.callback.selectMinion(m => m.destructable && m.isOnBase(base) && m.strength < base.minions.count(_.owner == owner)).map(_.destroy(owner))
     // TODO: must destroy if possible even if only option belongs to the owner

@@ -5,6 +5,7 @@ import Utils._
 
 class Table {
   var players = List[Player]()
+  var currentPlayer = null // FIXME: don't use null!
   var baseDrawPile = List[Base]()
   var basesInPlay = Set[Base]()
   var baseDiscardPile = Set[Base]()
@@ -75,22 +76,27 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   
   def randomDiscard() {
     if (hand.size > 0)
-      hand = dropIndex(hand.toList, Random.nextInt(hand.size)).toSet
+      hand = hand.toList.dropIndex(Random.nextInt(hand.size)).toSet
   }
   
-  private def dropIndex[T](xs: List[T], n: Int) = {
-    val (a, b) = xs splitAt n
-    a ::: (b drop 1)
+  def randomDiscard(count: Int) {
+    (1 to count).foreach(x => randomDiscard)
   }
+  
+  def otherPlayers() = table.players.filterNot(_ == this)
 }
 
 // TODO: callback needs function that take a list of options, not predicates
+// TODO: merge Callback conveince methods into Player class?
 trait Callback {
   def selectBase(predicate: Base => Boolean): Option[Base] = None
   def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
+  def selectMinion(options: Set[Minion]): Option[Minion] = None
   def selectAction(predicate: Action => Boolean): Option[Action] = None
   def selectFaction(): Option[Faction] = None
   def selectPlayer(predicate: Player => Boolean): Option[Player] = None
+  def selectPlayer: Option[Player] = selectPlayer(x => true)
+  def selectOtherPlayer: Option[Player] = None
   def selectFromHand(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
   def selectBoolean(): Boolean = false
   def select(cards: Set[DeckCard]): Option[DeckCard] = None
@@ -153,6 +159,8 @@ class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues:
 
 abstract class DeckCard(name: String, faction: Faction, val owner: Player) extends Card(name, faction) {
   var base: Option[Base] = None
+  
+  def table() = owner.table
   
   def moveToHand() {
     if (! isInHand) {
@@ -236,14 +244,6 @@ object Bonus {
     minion.bonuses += bonus
     minion.owner.onTurnEnd { minion.bonuses -= bonus }
   }
-}
-
-trait Effect {
-  def expire(): Unit
-}
-
-object Effect {
-  def apply(func: => Unit) = new Effect { def expire() = func }
 }
 
 trait Move {

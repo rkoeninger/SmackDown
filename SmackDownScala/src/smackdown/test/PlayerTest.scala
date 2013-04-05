@@ -1,6 +1,7 @@
 package smackdown.test
 
 import smackdown.{Action, Base, Callback, DeckCard, Faction, Minion, Player, Table}
+import smackdown.Utils._
 import org.scalatest.FunSpec
 
 class PlayerTest extends FunSpec {
@@ -65,7 +66,7 @@ class PlayerTest extends FunSpec {
       val callback = new Callback() {
         // Always discard weakest card first
         override def select(cards: Set[DeckCard]): Option[DeckCard] =
-          Some(cards.minBy(_.asInstanceOf[Minion].strength))
+          Some(cards.minBy(_.as[Minion].strength))
       }
       val player = new Player("Bob", List(TestFaction), table, callback)
       val card1 = new TestMinion(player, 1)
