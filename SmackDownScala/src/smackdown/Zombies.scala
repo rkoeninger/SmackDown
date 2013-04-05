@@ -29,7 +29,7 @@ class RhodesPlazaMall(table: Table) extends Base("Rhodes Plaza Mall", Zombies, 2
 class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombies, 20, (5, 3, 2), table) {
   // The winner discards their hand and draws 5 cards
   override def afterScore(newBase: Base) {
-    score.filter(_._2._2 == 1).map(_._1).foreach(winner => {
+    score.filter(_.winner).map(_.player).foreach(winner => {
       winner.hand.foreach(_.moveToDiscard)
       winner.draw(5)
     })

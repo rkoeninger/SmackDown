@@ -23,7 +23,7 @@ object Pirates extends Faction("Pirates") {
 class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), table) {
   // The runner-up may move one of his or her minions to the base that replaces this base.
   override def afterScore(newBase: Base) {
-    for (p <- score.filter(x => x._2._2 == 2 && minions.ownedBy(x._1).any).map(_._1);
+    for (p <- score.filter(_.runnerUp).map(_.player).filter(p => minions.ownedBy(p).any);
          m <- p.callback.selectMinion(minions.ownedBy(p)))
       m.moveToBase(newBase)
   }
@@ -32,7 +32,7 @@ class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), tabl
 class GreyOpal(table: Table) extends Base("The Grey Opal", Pirates, 17, (3, 1, 1), table) {
   // Everyone on this base other than the winner may move a minion to another base instead of to the discard pile.
   override def onScore() {
-    for (p <- score.filter(_._2._2 != 1).map(_._1);
+    for (p <- score.filter(! _.winner).map(_.player);
          m <- p.callback.selectMinion(minions.ownedBy(p));
          b <- p.callback.selectBase(_ != this))
       m.moveToBase(b)

@@ -133,28 +133,31 @@ class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues:
    * Rank values are 1, 2, 3... regardless of ties. If there is a tie for 1st and a third player
    * with less strength, the two players with greater strength will get scoreValues[0] and rank 1,
    * the weaker player will get scoreValues[2] and rank 2.
-   * The mapping defaults to (0, 0) for (no points, not present).
    */
-  def score(): Map[Player, (Int, Int)] = {
+  def score(): Set[Rank] = {
     val playerStrengths = minions.groupBy(_.owner).map(x => (x._1, x._2.map(_.strength).sum))
     val sortedStrengths = playerStrengths.values.toList.distinct.sorted.reverse
     var rewardCount = 0
     var rewardRank = 1
     
-    val rewards = sortedStrengths.map(strength =>
+    val ranks = sortedStrengths.map(strength =>
       if (rewardCount < 3) {
         val reward = scoreValues.productElement(rewardCount).as[Int]
-        val rewardGroup = playerStrengths.filter(_._2 == strength).map(_._1 -> (reward, rewardRank))
+        val rewardGroup = playerStrengths.filter(_._2 == strength).map(x => new Rank(x._1, reward, rewardRank)).toSet
         rewardCount += rewardGroup.size
         rewardRank += 1
         rewardGroup
       }
-      else Map[Player, (Int, Int)]()
+      else Set[Rank]()
     )
     
-    val result = if (rewards.isEmpty) Map[Player, (Int, Int)]() else rewards.reduce(_ ++ _)
-    result.withDefaultValue((0, 0))
+    if (ranks.isEmpty) Set[Rank]() else ranks.reduce(_ ++ _)
   }
+}
+
+case class Rank(val player: Player, val score: Int, val rank: Int) {
+  def winner() = rank == 1
+  def runnerUp() = rank == 2
 }
 
 abstract class DeckCard(name: String, faction: Faction, val owner: Player) extends Card(name, faction) {
