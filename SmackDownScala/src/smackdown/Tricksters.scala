@@ -15,9 +15,13 @@ class MushroomKingdom(table: Table) extends Base("Mushroom Kingdom", Tricksters,
 }
 
 class Gremlin(owner: Player) extends Minion("Gremlin", Tricksters, 2, owner) {
-  // ongoing: after this minion is destroyed,
-  //    draw a card
-  //    and each other player discards a random card
+  // Ongoing: After this minion is destroyed, draw a card
+  // and each other player discards a random card.
+  override def destroy(destroyer: Player) {
+    super.destroy(destroyer)
+    owner.draw
+    for (p <- owner.otherPlayers) p.randomDiscard
+  }
 }
 
 class Gnome(owner: Player) extends Minion("Gnome", Tricksters, 3, owner) {
@@ -38,8 +42,8 @@ class Leprechaun(owner: Player) extends Minion("Leprechaun", Tricksters, 5, owne
 }
 
 class TakeTheShinies(owner: Player) extends Action("Take the Shinies", Tricksters, owner) {
-  // each other player discards 2 random cards
-  override def play(user: Player) { user.otherPlayers.foreach(_.randomDiscard(2)) }
+  // Each other player discards 2 random cards.
+  override def play(user: Player) { for (p <- user.otherPlayers) p.randomDiscard(2) }
 }
 
 class FlameTrap(owner: Player) extends Action("Flame Trap", Tricksters, owner) {

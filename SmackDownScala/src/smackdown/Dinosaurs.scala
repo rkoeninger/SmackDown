@@ -18,46 +18,45 @@ class WarRaptor(owner: Player) extends Minion("War Raptor", Dinosaurs, 2, owner)
 }
 
 class ArmorStego(owner: Player) extends Minion("Armor Stego", Dinosaurs, 3, owner) {
-  // Has +2 power on other player's turns
-  override def strength() = super.strength + (if (owner != owner.table.currentPlayer) 2 else 0)
+  // Has +2 power on other player's turns.
+  override def strength() = super.strength + (if (owner != table.currentPlayer) 2 else 0)
 }
 
 class Laseratops(owner: Player) extends Minion("Laseratops", Dinosaurs, 4, owner) {
-  // Destroy a minion power 2 or less on this base
+  // Destroy a minion power 2 or less on this base.
   override def play(base: Base) {
-    owner.callback.select(base.minions.filter(_.strength <= 2).cast[DeckCard]).foreach(_.as[Minion].destroy(owner))
+    for (m <- owner.callback.selectMinion(base.minions.destructable.maxStrength(2)))
+      m.destroy(owner)
   }
 }
 
 class KingRex(owner: Player) extends Minion("King Rex", Dinosaurs, 7, owner)
 
 class Howl(owner: Player) extends Action("Howl", Dinosaurs, owner) {
-  // each of your minions gains +1 power until the end of your turn
-  override def play(user: Player) {
-    Bonus.untilTurnEnd(user, 1)
-  }
+  // Each of your minions gains +1 power until the end of your turn.
+  override def play(user: Player) { Bonus.untilTurnEnd(user, 1) }
 }
 
 class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owner) {
-  // one minion gains +4 power until the end of your turn
+  // One minion gains +4 power until the end of your turn.
   override def play(user: Player) {
-    user.callback.select(user.minionsInPlay.cast[DeckCard]).foreach(m => Bonus.untilTurnEnd(m.as[Minion], 4))
+    for (m <- user.callback.selectMinion(table.minions))
+      Bonus.untilTurnEnd(m, 4)
+  }
+}
+
+class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosaurs, owner) {
+  // Choose one of your minions on a base. Destroy a minion there with power less then yours.
+  override def play(user: Player) {
+    for (m0 <- user.callback.selectMinion(table.minions);
+         b <- m0.base;
+         m1 <- user.callback.selectMinion(b.minions.destructable.maxStrength(m0.strength - 1)))
+      m1.destroy(user)
   }
 }
 
 class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
   // play on a minion. ongoing: this minion has +2 power
-}
-
-class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosaurs, owner) {
-  // choose one of your minions on a base. destroy a minion there with power less then yours
-  override def play(user: Player) {
-    val mine = user.callback.select(user.minionsInPlay.cast[DeckCard]).map(_.as[Minion])
-    if (mine.isEmpty) return
-    val theirs = user.callback.select(mine.get.base.get.minions.filter(_.strength < mine.get.strength).cast[DeckCard])
-    if (theirs.isEmpty) return
-    theirs.get.as[Minion].destroy(user)
-  }
 }
 
 class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {

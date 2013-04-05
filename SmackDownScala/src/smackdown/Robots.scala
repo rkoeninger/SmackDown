@@ -14,20 +14,20 @@ object Robots extends Faction("Robots") {
     new Hoverbot(owner), new Hoverbot(owner), new Hoverbot(owner),
     new Warbot(owner), new Warbot(owner),
     new Nukebot(owner),
-    new TechCenter(owner),
-    new TechCenter(owner)
+    new TechCenter(owner), new TechCenter(owner)
   )
 }
 
 class CentralBrain(table: Table) extends Base("The Central Brain", Robots, 19, (4, 2, 1), table) {
-  // Each minion here gains +1 power
+  // Each minion here gains +1 power.
   bonuses += Bonus(1)
 }
 
 class Factory2341337(table: Table) extends Base("Factory 234-1337", Robots, 25, (2, 2, 0), table) {
-  // When this base scores, each player gets +1 point for every 5 minion strength
+  // When this base scores, each player gets +1 point for every 5 minion strength.
   override def onScore() {
-    minions.groupBy(_.owner).map(x => x._1.points += x._2.map(_.strength).sum / 5)
+    for (p <- minions.map(_.owner))
+      p.points += minions.ownedBy(p).map(_.strength).sum / 5
   }
 }
 
@@ -54,6 +54,7 @@ class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
   }
   override def destroy(destroyer: Player) {
     owner.bonuses -= microbotBonus // TODO: need generic method for when a minion is dismissed or disabled
+    super.destroy(destroyer)
   }
 }
 
@@ -97,15 +98,18 @@ class Warbot(owner: Player) extends Minion("Warbot", Robots, 4, owner) {
 }
 
 class Nukebot(owner: Player) extends Minion("Nukebot", Robots, 5, owner) {
-  // When this minion is destroyed, destroy all other player's minions on this base
+  // When this minion is destroyed, destroy all other player's minions on this base.
   override def destroy(destroyer: Player) {
-    base.map(_.minions.filter(m => m.destructable && m.owner != owner).map(_.destroy(owner)))
+    for (b <- base;
+         m <- b.minions.destructable.filter(_.owner != this.owner))
+      m.destroy(owner)
   }
 }
 
 class TechCenter(owner: Player) extends Action("Tech Center", Robots, owner) {
-  // Choose a base, draw 1 card for each minion you have there
+  // Choose a base, draw 1 card for each minion you have there.
   override def play(user: Player) {
-    user.callback.selectBase(x => true).map(b => user.draw(b.minions.filter(_.owner == user).size))
+    for (b <- user.callback.selectBase)
+      user.draw(b.minions.ownedBy(user).size)
   }
 }

@@ -9,6 +9,7 @@ class Table {
   var baseDrawPile = List[Base]()
   var basesInPlay = Set[Base]()
   var baseDiscardPile = Set[Base]()
+  def minions() = basesInPlay.flatMap(_.minions)
 }
 
 class Player(val name: String, val factions: List[Faction], val table: Table, val callback: Callback) {
@@ -90,6 +91,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
 // TODO: merge Callback conveince methods into Player class?
 trait Callback {
   def selectBase(predicate: Base => Boolean): Option[Base] = None
+  def selectBase: Option[Base] = selectBase(_.isInPlay)
   def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
   def selectMinion(options: Set[Minion]): Option[Minion] = None
   def selectAction(predicate: Action => Boolean): Option[Action] = None
@@ -206,6 +208,8 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
   def isInDiscardPile() = owner.discardPile.contains(this)
   def isOnBase() = base.isDefined
   def isOnBase(base: Base) = base.cards.contains(this)
+  def beginTurn() {}
+  def endTurn() {}
 }
 
 class Minion(name: String, faction: Faction, startingStrength: Int, owner: Player) extends DeckCard(name, faction, owner) {

@@ -20,19 +20,20 @@ object Zombies extends Faction("Zombies") {
 }
 
 class RhodesPlazaMall(table: Table) extends Base("Rhodes Plaza Mall", Zombies, 24, (0, 0, 0), table) {
-  // When this base scores, each player gets +1 point for each minion they have here
+  // When this base scores, each player gets +1 point for each minion they have here.
   override def afterScore(newBase: Base) {
-    minions.groupBy(_.owner).map(x => x._1.points += x._2.size)
+    for (p <- minions.map(_.owner))
+      p.points += minions.count(_.owner == p)
   }
 }
 
 class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombies, 20, (5, 3, 2), table) {
-  // The winner discards their hand and draws 5 cards
+  // The winner discards their hand and draws 5 cards.
   override def afterScore(newBase: Base) {
-    score.filter(_.winner).map(_.player).foreach(winner => {
-      winner.hand.foreach(_.moveToDiscard)
-      winner.draw(5)
-    })
+    for (p <- score.filter(_.winner).map(_.player)) {
+      for (c <- p.hand) c.moveToDiscard
+      p.draw(5)
+    }
   }
 }
 
@@ -49,16 +50,16 @@ class TenaciousZ(owner: Player) extends Minion("Tenacious Z", Zombies, 2, owner)
 // TODO: need onTurnBegin event so Ten-Z can add Play Ten-Z to player's move list
 
 class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owner) {
-  // You may place a minion from your discard into your hand
+  // You may place a minion from your discard into your hand.
   override def play(base: Base) {
-    owner.callback.select(owner.discardPile.filterType[Minion]).foreach(_.moveToHand)
+    for (m <- owner.callback.selectMinion(owner.discardPile.minions))
+      m.moveToHand
   }
 }
 
 class ZombieLord(owner: Player) extends Minion("Zombie Lord", Zombies, 5, owner)
 // You may play an extra minion from your discard on each base where you have no minion
 
-// TODO: is it "Lend a Hand" or "Fresh Bodies"?
 class LendAHand(owner: Player) extends Action("Lend a Hand", Zombies, owner) {
   // Suffle any number of cards from your discard into your deck
 }

@@ -35,11 +35,17 @@ object Utils {
   }
   implicit def int2Loop(i: Int) = new {
     /** Ruby-style n.times {} method */
-    def times[T](todo: => T) = 1 to i map(_ => todo)
+    def times[T](todo: => T) =
+      if (i <= 0) List[T]()
+      else 1 to i map(_ => todo)
   }
   implicit def minionSetEnhance(ms: Set[Minion]) = new {
     def destructable() = ms.filter(_.destructable)
     def ownedBy(p: Player) = ms.filter(_.owner == p)
     def maxStrength(max: Int) = ms.filter(_.strength <= max)
+  }
+  implicit def deckCardSetEnhance(dcs: Set[DeckCard]) = new {
+    def minions() = dcs.ofType[Minion]
+    def actions() = dcs.ofType[Action]
   }
 }

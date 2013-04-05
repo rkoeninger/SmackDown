@@ -21,7 +21,7 @@ class SchoolOfWizardry(table: Table) extends Base("School of Wizardry", Wizards,
 }
 
 class Enchantress(owner: Player) extends Minion("Enchantress", Wizards, 2, owner) {
-  // draw a card
+  // Draw a card.
   override def play(base: Base) { owner.draw }
 }
 
@@ -34,16 +34,19 @@ class Neophyte(owner: Player) extends Minion("Neophyte", Wizards, 2, owner) {
 }
 
 class Chronomage(owner: Player) extends Minion("Chronomage", Wizards, 3, owner) {
-  // you may play an extra action this turn
+  // You may play an extra action this turn.
   override def play(base: Base) { owner.moves += new PlayAction() }
 }
 
 class Archmage(owner: Player) extends Minion("Archmage", Wizards, 4, owner) {
-  // ongoing: you may play an extra action on each of your turns
+  // Ongoing: You may play an extra action on each of your turns.
+  override def beginTurn() {
+    if (isOnTable) owner.moves += new PlayAction()
+  }
 }
 
 class MysticStudies(owner: Player) extends Action("Mystic Studies", Wizards, owner) {
-  // draw 2 cards
+  // Draw 2 cards.
   override def play(user: Player) { user.draw(2) }
 }
 
