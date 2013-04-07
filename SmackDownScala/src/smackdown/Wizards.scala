@@ -1,16 +1,23 @@
 package smackdown
 
+import scala.util.Random
+import Utils._
+
 object Wizards extends Faction("Wizards") {
-  override def bases(table: Table) = List[Base]()
-  override def cards(owner: Player) = List[DeckCard]()
+  override def bases(table: Table) = List(new GreatLibrary(table), new SchoolOfWizardry(table))
+  override def cards(owner: Player) = List(
+    new Enchantress(owner), new Enchantress(owner), new Enchantress(owner), new Enchantress(owner),
+    new Neophyte(owner), new Neophyte(owner), new Neophyte(owner),
+    new Chronomage(owner), new Chronomage(owner),
+    new Archmage(owner))
 }
 
 class GreatLibrary(table: Table) extends Base("The Great Library", Wizards, 22, (4, 2, 1), table) {
-  // after this base scores, each player with a minion here may draw a card
+  // After this base scores, each player with a minion here may draw a card.
   override def afterScore(newBase: Base) {
-    minions.map(_.owner).foreach(player => {
-      if (player.callback.selectBoolean) player.draw 
-    })
+    for (p <- minions.map(_.owner))
+      if (p.callback.selectBoolean)
+        p.draw
   }
 }
 
@@ -40,9 +47,7 @@ class Chronomage(owner: Player) extends Minion("Chronomage", Wizards, 3, owner) 
 
 class Archmage(owner: Player) extends Minion("Archmage", Wizards, 4, owner) {
   // Ongoing: You may play an extra action on each of your turns.
-  override def beginTurn() {
-    if (isOnTable) owner.moves += new PlayAction()
-  }
+  override def beginTurn() { if (isOnTable) owner.moves += new PlayAction() }
 }
 
 class MysticStudies(owner: Player) extends Action("Mystic Studies", Wizards, owner) {
@@ -51,37 +56,59 @@ class MysticStudies(owner: Player) extends Action("Mystic Studies", Wizards, own
 }
 
 class TimeLoop(owner: Player) extends Action("Time Loop", Wizards, owner) {
-  // play 2 extra actions (immediately, required)
+  // Play 2 extra actions.
+  override def play(user: Player) { 2 times user.playAction }
 }
 
 class Sacrifice(owner: Player) extends Action("Sacrifice", Wizards, owner) {
-  // choose one of your minions. draw cards equal to its power. destroy that minion
+  // Choose one of your minions. Draw cards equal to its power. Destroy that minion.
   override def play(user: Player) {
-    val mo = user.callback.selectMinion(m => m.isOnTable && m.owner == user)
-    mo.foreach(m => {
+    for (m <- user.callback.selectMinion(table.minions.ownedBy(user))) {
       user.draw(m.strength)
       m.destroy(user)
-    })
+    }
   }
 }
 
-class Summon(owner: Player) extends Action("Summon", Aliens, owner) {
-  // play an extra minion
+class Summon(owner: Player) extends Action("Summon", Wizards, owner) {
+  // Play an extra minion.
+  override def play(user: Player) { user.playMinion }
 }
 
-class Portal(owner: Player) extends Action("Portal", Aliens, owner) {
-  // reveal the top five cards of your deck
-  // place any number of minions revealed into your hand
-  // return the other cards to the top of your deck in any order
+class WindsOfChange(owner: Player) extends Action("Winds of Change", Wizards, owner) {
+  // Shuffle your hand into your deck and draw 5 cards. You may play an extra action.
+  override def play(user: Player) {
+    user.hand.foreach(_.moveToDrawPileTop)
+    user.drawPile = Random.shuffle(user.drawPile)
+    user.draw(5)
+  }
 }
 
-class Scry(owner: Player) extends Action("Scry", Aliens, owner) {
-  // search your deck for an action and reveal it to all players
-  // place it in your hand and shuffle your deck
+class Scry(owner: Player) extends Action("Scry", Wizards, owner) {
+  // Search your deck for an action and reveal it to all players.
+  // Place it in your hand and shuffle your deck.
+  override def play(user: Player) {
+    for (a <- user.callback.selectAction(a => user.drawPile.contains(a))) {
+      a.moveToHand
+      user.drawPile = Random.shuffle(user.drawPile)
+    }
+  }
 }
 
-class MassEnchantment // TODO: need card text
+class Portal(owner: Player) extends Action("Portal", Wizards, owner) {
+  // Reveal the top five cards of your deck.
+  // Place any number of minions revealed into your hand.
+  // Return the other cards to the top of your deck in any order.
+}
 
-class WindsOfChange {
-  // shuffle your hand into your deck and draw 5 cards. you may play an extra action
+class MassEnchantment(owner: Player) extends Action("Mass Enchantment", Wizards, owner) {
+  // Reveal the top card of each other player's deck.
+  // Play one revealed action as an extra action.
+  // Return unused to the top of their decks.
+  override def play(user: Player) {
+    for (a <- user.callback.selectAction(user.otherPlayers.map(_.reveal).ofType[Action].toSet)) {
+      a.play(user)
+      // TODO: Move to discard?
+    }
+  }
 }

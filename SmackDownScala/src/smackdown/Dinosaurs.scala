@@ -65,7 +65,9 @@ class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {
   // (power/breakpoint are linked - if minion is given power boost, break point should lower further)
 }
 
-class WildlifePreserve // TODO: need card text
+class WildlifePreserve {
+  // Play on a base. Ongoing: Your minoins here are not affected by other player's actions.
+}
 
 class SurvivalOfTheFittest {
   // destroy the lowest-power minion (you choose in case of a tie)

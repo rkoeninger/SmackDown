@@ -64,6 +64,20 @@ class DeckDiscardTest extends FunSpec {
       assert(player.hand == Set(card1, card3))
       assert(player.discardPile == Set(card2, card4))
     }
+    it ("should remove itself from owner's discard when placed on a base") {
+      player.drawPile = List()
+      player.discardPile = Set(card1, card2, card3)
+      player.hand = Set()
+      base.cards = Set(card4)
+      
+      card2.moveToBase(base)
+      assert(player.discardPile == Set(card1, card3))
+      assert(base.cards == Set(card4, card2))
+      
+      card3.moveToBase(base)
+      assert(player.discardPile == Set(card1))
+      assert(base.cards == Set(card2, card3, card4))
+    }
     it ("should remove itself from a base when placed on the bottom of owner's draw pile") {
       player.drawPile = List(card3, card4)
       player.discardPile = Set()

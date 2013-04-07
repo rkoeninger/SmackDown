@@ -85,16 +85,45 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
   
   def otherPlayers() = table.players.filterNot(_ == this)
+  
+  def playMinion() {
+    val move = new PlayMinion()
+    if (move.isPlayable(this))
+      move.play(this)
+  }
+  
+  def playMinion(m: Minion) {
+    for (m <- callback.selectMinion(hand.minions);
+         b <- callback.selectBase) {
+      m.play(b)
+      b.cards += m
+    }
+  }
+  
+  def playAction() {
+    val move = new PlayAction()
+    if (move.isPlayable(this))
+      move.play(this)
+  }
+  
+  def playAction(a: Action) {
+    a.play(this)
+  }
 }
 
 // TODO: callback needs function that take a list of options, not predicates
 // TODO: merge Callback conveince methods into Player class?
 trait Callback {
+  def choose[T](options: Set[T]): Option[T] = None
+  def chooseOrder[T](options: List[T]): List[T] = options
+  def confirm(): Boolean = false
+  
   def selectBase(predicate: Base => Boolean): Option[Base] = None
   def selectBase: Option[Base] = selectBase(_.isInPlay)
   def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
   def selectMinion(options: Set[Minion]): Option[Minion] = None
   def selectAction(predicate: Action => Boolean): Option[Action] = None
+  def selectAction(options: Set[Action]): Option[Action] = None
   def selectFaction(): Option[Faction] = None
   def selectPlayer(predicate: Player => Boolean): Option[Player] = None
   def selectPlayer: Option[Player] = selectPlayer(x => true)
@@ -255,28 +284,24 @@ object Bonus {
 
 trait Move {
   def isPlayable(user: Player): Boolean
-  def play(user: Player, callback: Callback)
+  def play(user: Player)
 }
 
 class PlayMinion extends Move {
   def isPlayable(user: Player) = user.hand.exists(_.is[Minion])
-  def play(user: Player, callback: Callback) {
-    val m = callback.selectMinion(user.hand.contains(_))
-    if (m.isEmpty) return
-    val b = callback.selectBase(_ => true)
-    if (b.isEmpty) return
-    b.get.cards += m.get
-    m.get.play(b.get)
+  def play(user: Player) {
+    for (m <- user.callback.selectMinion(user.hand.minions);
+         b <- user.callback.selectBase) {
+      m.play(b)
+      b.cards += m
+    }
   }
 }
 
 class PlayAction extends Move {
   def isPlayable(user: Player) = user.hand.exists(_.is[Action])
-  def play(user: Player, callback: Callback) {
-    val a = callback.selectAction(user.hand.contains(_))
-    if (a.isEmpty) return
-    val b = callback.selectBase(_ => true)
-    if (b.isEmpty) return
-    a.get.play(user)
+  def play(user: Player) {
+    for (a <- user.callback.selectAction(user.hand.actions))
+      a.play(user)
   }
 }

@@ -32,11 +32,12 @@ class Factory2341337(table: Table) extends Base("Factory 234-1337", Robots, 25, 
 }
 
 abstract class Microbot(name: String, owner: Player) extends Minion(name, Robots, 1, owner) {
-  def isMicrobot(minion: Minion) = minion.is[Microbot] || owner.minionsInPlay.exists(_.is[MicrobotAlpha])
+  // A minion must be in play for Microbot Alpha to make it into a Microbot.
+  def isMicrobot(minion: Minion) = minion.is[Microbot] || (minion.isOnTable && owner.minionsInPlay.exists(_.is[MicrobotAlpha]))
 }
 
 class MicrobotAlpha(owner: Player) extends Microbot("Microbot Alpha", owner) {
-  // Gains +1 for each other Microbot in play. All of your minions are considered microbots
+  // Gains +1 for each other Microbot in play. All of your minions are considered microbots.
   override def strength() = super.strength + (owner.minionsInPlay - this).count(isMicrobot(_))
 }
 
@@ -47,7 +48,7 @@ class MicrobotArchive(owner: Player) extends Microbot("Microbot Archive", owner)
 
 class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
   // If this is the first minion you played this turn, you may play an extra minion.
-  // All microbots gain +1
+  // All microbots gain +1.
   val microbotBonus = Bonus(m => if (isMicrobot(m)) 1 else 0)
   override def play(base: Base) {
     owner.bonuses += microbotBonus
@@ -59,10 +60,11 @@ class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
 }
 
 class MicrobotGuard(owner: Player) extends Microbot("Microbot Guard", owner) {
-  // Destroy a minion on this base with power less than the number of minions you have on this base
+  // Destroy a minion on this base with power less than the number of minions you have on this base.
   // TODO: does that include this Microbot Guard?
   override def play(base: Base) {
-    owner.callback.selectMinion(m => m.destructable && m.isOnBase(base) && m.strength < base.minions.count(_.owner == owner)).map(_.destroy(owner))
+    for (m <- owner.callback.selectMinion(base.minions.destructable.maxStrength(base.minions.ownedBy(owner).size - 1)))
+      m.destroy(owner)
     // TODO: must destroy if possible even if only option belongs to the owner
   }
 }
@@ -73,22 +75,20 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Microbot Reclaimer", ow
   // You may reshuffle any number of microbots from your discard into your deck.
 
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
-  // You may play an extra minion power 2 or less
+  // You may play an extra minion power 2 or less.
   override def play(base: Base) {
-    val m = owner.callback.selectFromHand(_.is[Minion])
-    // ... select a base, etc...
-    // TODO: need a function on Callback for this (playing a minion) 
+    for (m <- owner.callback.selectMinion(owner.hand.minions.maxStrength(2)))
+      owner.playMinion(m) 
   }
 }
 
 class Hoverbot(owner: Player) extends Minion("Hoverbot", Robots, 3, owner) {
-  // Reveal the top card of your card, if it is a minion, you may play it as an extra minion
+  // Reveal the top card of your draw pile, if it is a minion, you may play it as an extra minion.
   override def play(base: Base) {
-    val card = owner.reveal
-    if (card.isDefined) {
-      // ... select a base, etc...
-      // TODO: need a function on Callback for this (playing a minion) 
-    }
+    for (c <- owner.reveal;
+         m <- if (c.is[Minion]) Some(c.as[Minion]) else None)
+      if (owner.callback.selectBoolean)
+        owner.playMinion(m)
   }
 }
 

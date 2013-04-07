@@ -115,4 +115,9 @@ class JammedSignal(owner: Player) extends Action("Jammed Signal", Aliens, owner)
   // play on a base. ongoing: all players ignore this base's ability
 }
 
-class Terraforming // TODO: need card text
+class Terraforming {
+  // Search the base deck for a base.
+  // Swap it with a base in play (discard all actions attached to it).
+  // Shuffle the base deck.
+  // You may play an extra minion on the new base.
+}

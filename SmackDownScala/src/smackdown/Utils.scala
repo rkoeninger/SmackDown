@@ -44,6 +44,7 @@ object Utils {
     def ownedBy(p: Player) = ms.filter(_.owner == p)
     def notOwnedBy(p: Player) = ms.filter(_.owner != p)
     def maxStrength(max: Int) = ms.filter(_.strength <= max)
+    def ofFaction(f: Faction) = ms.filter(_.faction == f)
   }
   implicit def deckCardSetEnhance(dcs: Set[DeckCard]) = new {
     def minions() = dcs.ofType[Minion]

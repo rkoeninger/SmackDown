@@ -136,12 +136,13 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
 }
 
 class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
-  // Name a faction. Move all minions of that faction to another base.
+  // Name a faction. Move all minions of that faction from one base to another.
   override def play(user: Player) {
     for (f <- user.callback.selectFaction;
-         b <- user.callback.selectBase;
-         m <- table.minions.filter(_.faction == f))
-      m.moveToBase(b)
+         b0 <- user.callback.selectBase;
+         b1 <- user.callback.selectBase(_ != b0);
+         m <- b0.minions.ofFaction(f))
+      m.moveToBase(b1)
   }
 }
 
