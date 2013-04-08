@@ -1,17 +1,27 @@
 package smackdown
 
+import Utils._
+
 object Tricksters extends Faction("Tricksters") {
   override def bases(table: Table) = Set[Base]()
   override def cards(owner: Player) = Set[DeckCard]()
 }
 
 class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23, (4, 2, 1), table) {
-  // when a minion is destroyed here, its owner gains +1 point
+  // When a minion is destroyed here, its owner gains +1 point.
+  override def minionDestroyed(minion: Minion, base: Base) {
+    if (base == this)
+      minion.owner.points += 1
+  }
 }
 
 class MushroomKingdom(table: Table) extends Base("Mushroom Kingdom", Tricksters, 20, (5, 3, 2), table) {
-  // at the start of each player's turn, they may move on other player's minion
-  // from any base to here
+  // At the start of each player's turn, they may move one other player's minion
+  // from any base to here.
+  override def onTurnBegin(player: Player) {
+    for (m <- player.callback.choose(table.minions.filter(m => m.base != Some(this) && m.owner != player)))
+      m.moveToBase(this)
+  }
 }
 
 class Gremlin(owner: Player) extends Minion("Gremlin", Tricksters, 2, owner) {
@@ -25,8 +35,12 @@ class Gremlin(owner: Player) extends Minion("Gremlin", Tricksters, 2, owner) {
 }
 
 class Gnome(owner: Player) extends Minion("Gnome", Tricksters, 3, owner) {
-  // you may destroy a minion on this base
-  // with power less than the number of minions you have here
+  // You may destroy a minion on this base
+  // with power less than the number of minions you have here.
+  override def play(base: Base) {
+    for (m <- owner.chooseMinionOnBase(base, base.minions.ownedBy(owner).size - 1))
+      m.destroy(owner)
+  }
 }
 
 class Brownie(owner: Player) extends Minion("Brownie", Tricksters, 4, owner) {
@@ -35,9 +49,13 @@ class Brownie(owner: Player) extends Minion("Brownie", Tricksters, 4, owner) {
 }
 
 class Leprechaun(owner: Player) extends Minion("Leprechaun", Tricksters, 5, owner) {
-  // ongoing: after another player plays a minion here
-  // with power less than this minions power
-  // destroy it (it's ability is resolved first)
+  // Ongoing: After another player plays a minion here
+  // with power less than this minion's power,
+  // destroy it (its ability is resolved first).
+  override def minionPlayed(minion: Minion) {
+    if (isOnTable && minion.base == this.base && minion.strength < this.strength)
+      minion.destroy(owner)
+  }
   // TODO: what happens if Leprechaun has Upgrade (so he's a 7) and NinjaMaster is played, which kills the Lep?
 }
 
@@ -75,4 +93,6 @@ class EnshroudingMist(owner: Player) extends Action("Enshrouding Mist", Trickste
   // play on a base. ongoing: on your turn, you may play an extra minion here
 }
 
-class Disenchant
+class Disenchant(owner: Player) extends Action("Disenchant", Tricksters, owner) {
+  
+}

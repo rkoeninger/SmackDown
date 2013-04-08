@@ -97,6 +97,18 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
       move.play(this)
   }
   
+  def playMinion(maxStrength: Int) {
+    val move = new PlayMinion(maxStrength)
+    if (move.isPlayable(this))
+      move.play(this)
+  }
+  
+  def playMinion(base: Base) {
+    val move = new PlayMinionOnBase(base)
+    if (move.isPlayable(this))
+      move.play(this)
+  }
+  
   def playMinion(m: Minion) {
     for (m <- chooseMinionInHand;
          b <- chooseBaseInPlay) {
@@ -160,10 +172,13 @@ class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues:
   
   def isInPlay() = table.basesInPlay.contains(this)
   
+  def minionPlayed(minion: Minion) {}
+  def minionMovedHere(minion: Minion) {}
+  def minionMovedAway(minion: Minion) {}
+  def minionDestroyed(minion: Minion, base: Base) {}
+  def onTurnBegin(player: Player) {}
   def beforeScore() {}
-  
   def onScore() {}
-  
   def afterScore(newBase: Base) {}
   
   /**
@@ -263,12 +278,15 @@ class Minion(name: String, faction: Faction, startingStrength: Int, owner: Playe
   }
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}
+  def minionDestroyed(minion: Minion, base: Base) {}
+  def minionPlayed(minion: Minion) {}
 }
 
 class Action(name: String, faction: Faction, owner: Player) extends DeckCard(name, faction, owner) {
   def play(user: Player) {}
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}
+  def detach(card: Card) {}
 }
 
 trait Bonus {
@@ -295,13 +313,24 @@ trait Move {
   def play(user: Player)
 }
 
-class PlayMinion extends Move {
-  def isPlayable(user: Player) = user.hand.exists(_.is[Minion])
+class PlayMinion(maxStrength: Int) extends Move {
+  def this() = this(Int.MaxValue)
+  def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion] && m.as[Minion].strength <= maxStrength)
   def play(user: Player) {
-    for (m <- user.chooseMinionInHand;
+    for (m <- user.chooseMinionInHand(maxStrength);
          b <- user.chooseBaseInPlay) {
       m.play(b)
       b.cards += m
+    }
+  }
+}
+
+class PlayMinionOnBase(base: Base) extends Move {
+  def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion])
+  def play (user: Player) {
+    for (m <- user.chooseMinionInHand) {
+      m.play(base)
+      base.cards += m
     }
   }
 }

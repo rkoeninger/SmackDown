@@ -42,8 +42,11 @@ class MicrobotAlpha(owner: Player) extends Microbot("Microbot Alpha", owner) {
 }
 
 class MicrobotArchive(owner: Player) extends Microbot("Microbot Archive", owner) {
-  // When is minion or any other Microbot is destroyed, draw a card
-  // TODO: need onMinionDestroyed event
+  // When is minion or any other Microbot is destroyed, draw a card.
+  override def minionDestroyed(minion: Minion, base: Base) {
+    if (isMicrobot(minion))
+      owner.draw
+  }
 }
 
 class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {

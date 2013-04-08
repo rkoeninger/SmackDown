@@ -68,14 +68,25 @@ class WayOfDeception(owner: Player) extends Action("Way of Deception", Ninjas, o
   }
 }
 
+class HiddenNinja(owner: Player) extends Action("Hidden Ninja", Ninjas, owner) {
+  // Special: Before a base scores, play a minion there.
+  override def beforeScore(base: Base) {
+    owner.playMinion(base)
+  }
+}
+
+class Assassination(owner: Player) extends Action("Assassination", Ninjas, owner) {
+  // Play on a minion. Ongoing: Destroy this minion at end of turn.
+  override def play(user: Player) {
+    for (m <- user.chooseMinionInPlay)
+      user.onTurnEnd { m.destroy(user) }
+  }
+}
+
 class Disguise(owner: Player) extends Action("Disguise", Ninjas, owner) {
   // choose one or two of your minions on one base
   // play an equal number of extra minions there
   // and return the choosen minions to your hand
-}
-
-class HiddenNinja(owner: Player) extends Action("Hidden Ninja", Ninjas, owner) {
-  // special: before a base scores, play a minion there
 }
 
 class SmokeBomb(owner: Player) extends Action("Smoke Bomb", Ninjas, owner) {
@@ -86,10 +97,6 @@ class SmokeBomb(owner: Player) extends Action("Smoke Bomb", Ninjas, owner) {
 class Poison(owner: Player) extends Action("Poison", Ninjas, owner) {
   // play on a minion. ongoing: minion has -4 power (but not less than 0)
   // destroy any actions on this minion
-}
-
-class Assassination(owner: Player) extends Action("Assassination", Ninjas, owner) {
-  // play on a minion. ongoing: destroy this minion at end of turn
 }
 
 class Infiltrate(owner: Player) extends Action("Infiltrate", Ninjas, owner) {

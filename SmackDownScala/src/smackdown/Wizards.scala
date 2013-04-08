@@ -40,7 +40,7 @@ class Neophyte(owner: Player) extends Minion("Neophyte", Wizards, 2, owner) {
   // Otherwise, return it to the top of your draw pile.
   override def play(base: Base) {
     for (c <- owner.reveal;
-         a <- c.maybe(_.is[Action]).map(_.as[Action]))
+         a <- c.optionCast[Action])
       if (owner.chooseYesNo)
         owner.playAction(a)
   }

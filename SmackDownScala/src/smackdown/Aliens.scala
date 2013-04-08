@@ -1,5 +1,6 @@
 package smackdown
 
+import scala.util.Random
 import Utils._
 
 object Aliens extends Faction("Aliens") {
@@ -13,8 +14,9 @@ object Aliens extends Faction("Aliens") {
 }
 
 class Homeworld(table: Table) extends Base("The Homeworld", Aliens, 23, (4, 2, 1), table) {
-  // after each time a minion is played here,
-  // its owner my play an extra minion of power 2 or less
+  // After each time a minion is played here,
+  // its owner may play an extra minion of power 2 or less.
+  override def minionPlayed(minion: Minion) { minion.owner.playMinion(2) }
 }
 
 class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2, 1), table) {
@@ -81,7 +83,7 @@ class Abduction(owner: Player) extends Action("Abduction", Aliens, owner) {
   override def play(user: Player) {
     for (m <- user.chooseMinionInPlay)
       m.moveToHand
-    // TODO: Player/Callback method for playing a minion immediately
+    user.playMinion
   }
 }
 
@@ -112,13 +114,26 @@ class Probe(owner: Player) extends Action("Probe", Aliens, owner) {
   }
 }
 
-class JammedSignal(owner: Player) extends Action("Jammed Signal", Aliens, owner) {
-  // play on a base. ongoing: all players ignore this base's ability
-}
-
-class Terraforming {
+class Terraforming(owner: Player) extends Action("Terraforming", Aliens, owner){
   // Search the base deck for a base.
   // Swap it with a base in play (discard all actions attached to it).
   // Shuffle the base deck.
   // You may play an extra minion on the new base.
+  override def play(user: Player) {
+    for (b0 <- user.callback.choose(table.baseDrawPile.toSet);
+         b1 <- user.chooseBaseInPlay) {
+      table.baseDrawPile = table.baseDrawPile.filterNot(_ == b0)
+      table.basesInPlay -= b1
+      table.baseDrawPile = b1 :: table.baseDrawPile
+      table.basesInPlay += b0
+      b0.cards = b1.cards
+      b1.cards = Set()
+      table.baseDrawPile = Random.shuffle(table.baseDrawPile)
+      owner.playMinion(b0)
+    }
+  }
+}
+
+class JammedSignal(owner: Player) extends Action("Jammed Signal", Aliens, owner) {
+  // play on a base. ongoing: all players ignore this base's ability
 }

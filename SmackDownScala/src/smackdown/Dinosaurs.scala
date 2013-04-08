@@ -56,7 +56,16 @@ class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosa
 }
 
 class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
-  // play on a minion. ongoing: this minion has +2 power
+  // Play on a minion. Ongoing: This minion has +2 power.
+  val bonus = Bonus(2)
+  override def play(user: Player) {
+    for (m <- user.chooseMinionInPlay)
+      m.bonuses += bonus
+  }
+  override def detach(card: Card) {
+    for (m <- card.optionCast[Minion])
+      m.bonuses -= bonus
+  }
 }
 
 class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {
