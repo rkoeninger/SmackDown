@@ -3,8 +3,8 @@ package smackdown
 import Utils._
 
 object Dinosaurs extends Faction("Dinosaurs") {
-  override def bases(table: Table) = List(new JungleOasis(table), new TarPits(table))
-  override def cards(owner: Player) = List[DeckCard]()
+  override def bases(table: Table) = Set(new JungleOasis(table), new TarPits(table))
+  override def cards(owner: Player) = Set[DeckCard]()
 }
 
 class JungleOasis(table: Table) extends Base("Jungle Oasis", Dinosaurs, 12, (2, 0, 0), table)
@@ -13,7 +13,7 @@ class TarPits(table: Table) extends Base("Tar Pits", Dinosaurs, 16, (4, 2, 1), t
 // minions destroyed here go to the bottom of their owner's draw pile instead of the discard
 
 class WarRaptor(owner: Player) extends Minion("War Raptor", Dinosaurs, 2, owner) {
-  // Gains +1 for each war raptor in play (including this one)
+  // Ongoing: Gains +1 for each War Raptor on this base (including this one).
   override def strength() = super.strength + base.map(_.minions.count(_.is[WarRaptor])).getOrElse(0)
 }
 
@@ -25,7 +25,7 @@ class ArmorStego(owner: Player) extends Minion("Armor Stego", Dinosaurs, 3, owne
 class Laseratops(owner: Player) extends Minion("Laseratops", Dinosaurs, 4, owner) {
   // Destroy a minion power 2 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(base.minions.destructable.maxStrength(2)))
+    for (m <- owner.chooseMinionOnBase(base, 2))
       m.destroy(owner)
   }
 }
@@ -40,7 +40,7 @@ class Howl(owner: Player) extends Action("Howl", Dinosaurs, owner) {
 class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owner) {
   // One minion gains +4 power until the end of your turn.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(table.minions))
+    for (m <- user.chooseMinionInPlay)
       Bonus.untilTurnEnd(m, 4)
   }
 }
@@ -48,9 +48,9 @@ class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owne
 class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosaurs, owner) {
   // Choose one of your minions on a base. Destroy a minion there with power less then yours.
   override def play(user: Player) {
-    for (m0 <- user.callback.selectMinion(table.minions.ownedBy(user));
+    for (m0 <- user.chooseMyMinionInPlay;
          b <- m0.base;
-         m1 <- user.callback.selectMinion(b.minions.destructable.maxStrength(m0.strength - 1)))
+         m1 <- user.chooseMinionOnBase(b, m0.strength - 1))
       m1.destroy(user)
   }
 }

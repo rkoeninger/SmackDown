@@ -3,8 +3,8 @@ package smackdown
 import Utils._
 
 object Pirates extends Faction("Pirates") {
-  override def bases(table: Table) = List(new Tortuga(table), new GreyOpal(table))
-  override def cards(owner: Player) = List(
+  override def bases(table: Table) = Set(new Tortuga(table), new GreyOpal(table))
+  override def cards(owner: Player) = Set(
     new FirstMate(owner), new FirstMate(owner), new FirstMate(owner), new FirstMate(owner),
     new SaucyWench(owner), new SaucyWench(owner), new SaucyWench(owner),
     new Buccaneer(owner), new Buccaneer(owner),
@@ -24,7 +24,7 @@ class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), tabl
   // The runner-up may move one of his or her minions to the base that replaces this base.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.runnerUp).map(_.player).filter(p => minions.ownedBy(p).any);
-         m <- p.callback.selectMinion(minions.ownedBy(p)))
+         m <- p.chooseMyMinionOnBase(this))
       m.moveToBase(newBase)
   }
 }
@@ -34,8 +34,8 @@ class GreyOpal(table: Table) extends Base("The Grey Opal", Pirates, 17, (3, 1, 1
   // may move a minion to another base instead of to the discard pile.
   override def onScore() {
     for (p <- score.filter(! _.winner).map(_.player);
-         m <- p.callback.selectMinion(minions.ownedBy(p));
-         b <- p.callback.selectBase(_ != this))
+         m <- p.chooseMyMinionOnBase(this);
+         b <- p.chooseOtherBaseInPlay(this))
       m.moveToBase(b)
   }
 }
@@ -45,7 +45,7 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
   // you may move this minion to another base instead of to the discard pile.
   override def afterScore(base: Base, newBase: Base) {
     if (this.base == Some(base))
-      if (owner.callback.selectBoolean)
+      if (owner.chooseYesNo)
         moveToBase(newBase)
   }
 }
@@ -53,7 +53,7 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
 class SaucyWench(owner: Player) extends Minion("Saucy Wench", Pirates, 3, owner) {
   // You may destory a minion power 2 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(base.minions().destructable.maxStrength(2)))
+    for (m <- owner.chooseMinionOnBase(base, 2))
       m.destroy(owner)
   }
 }
@@ -61,8 +61,9 @@ class SaucyWench(owner: Player) extends Minion("Saucy Wench", Pirates, 3, owner)
 class Buccaneer(owner: Player) extends Minion("Buccaneer", Pirates, 4, owner) {
   // Special: If this minion would be destroyed, move it to another base instead.
   override def destroy(destroyer: Player) {
-    for (b <- owner.callback.selectBase(Some(_) != base))
-      moveToBase(b)
+    for (b0 <- base;
+         b1 <- owner.chooseOtherBaseInPlay(b0))
+      moveToBase(b1)
   }
 }
 
@@ -70,7 +71,7 @@ class PirateKing(owner: Player) extends Minion("Pirate King", Pirates, 5, owner)
   // Special: Before a base scores, you may move this minion there.
   override def beforeScore(base: Base) {
     if (isOnTable && Some(base) != this.base)
-      if (owner.callback.selectBoolean)
+      if (owner.chooseYesNo)
         moveToBase(base)
   }
 }
@@ -78,9 +79,9 @@ class PirateKing(owner: Player) extends Minion("Pirate King", Pirates, 5, owner)
 class Broadside(owner: Player) extends Action("Broadside", Pirates, owner) {
   // Destroy all of one player's minions power 2 or less on a base where you have a minion.
   override def play(user: Player) {
-    for (b <- user.callback.selectBase(_.minions.exists(_.owner == user));
-         p <- user.callback.selectPlayer;
-         m <- b.minions.destructable.ownedBy(p).maxStrength(2))
+    for (b <- user.callback.choose(table.basesInPlay.filter(_.minions.exists(_.owner == user)));
+         p <- user.choosePlayer;
+         m <- b.minions.ownedBy(p).maxStrength(2))
       m.destroy(user)
   }
 }
@@ -89,7 +90,7 @@ class Cannon(owner: Player) extends Action("Cannon", Pirates, owner) {
   // Destroy up to two minions of power 2 or less.
   override def play(user: Player) {
     2 times {
-      for (m <- user.callback.selectMinion(m => m.destructable && m.strength <= 2))
+      for (m <- user.chooseMinionInPlay(2))
         m.destroy(user)
     }
   }
@@ -99,9 +100,10 @@ class Dinghy(owner: Player) extends Action("Dinghy", Pirates, owner) {
   // Move up to two of your minions to other bases.
   override def play(user: Player) {
     2 times {
-      for (m <- user.callback.selectMinion(_.owner == user);
-           b <- user.callback.selectBase(Some(_) != m.base))
-        m.moveToBase(b)
+      for (m <- user.chooseMinionInPlay;
+           b0 <- m.base;
+           b1 <- user.chooseOtherBaseInPlay(b0))
+        m.moveToBase(b1)
     }
   }
 }
@@ -112,13 +114,14 @@ class FullSail(owner: Player) extends Action("Full Sail", Pirates, owner) {
   override def play(user: Player) {
     while (true) {
       // FIXME: Infinite loop - how to propogate Cancel/Done choice?
-      for (m <- user.callback.selectMinion(_.owner == user);
-           b <- user.callback.selectBase(Some(_) != m.base))
-        m.moveToBase(b)
+      for (m <- user.chooseMyMinionInPlay;
+           b0 <- m.base;
+           b1 <- user.chooseOtherBaseInPlay(b0))
+        m.moveToBase(b1)
     }
   }
   override def beforeScore(base: Base) {
-    if (isInHand && owner.callback.selectBoolean) play(owner)
+    if (isInHand && owner.chooseYesNo) play(owner)
   }
 }
 
@@ -126,7 +129,7 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
   // Destroy one of your minions,
   // also destroy all minions on that base with power less than/equal to your minion.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(_.owner == user);
+    for (m <- user.chooseMyMinionInPlay;
          b <- m.base) {
       val strength = m.strength
       m.destroy(user)
@@ -138,9 +141,9 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
 class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
   // Name a faction. Move all minions of that faction from one base to another.
   override def play(user: Player) {
-    for (f <- user.callback.selectFaction;
-         b0 <- user.callback.selectBase;
-         b1 <- user.callback.selectBase(_ != b0);
+    for (f <- user.chooseFaction;
+         b0 <- user.chooseBaseInPlay;
+         b1 <- user.chooseOtherBaseInPlay(b0);
          m <- b0.minions.ofFaction(f))
       m.moveToBase(b1)
   }
@@ -149,9 +152,10 @@ class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
 class Shanghai(owner: Player) extends Action("Shanghai", Pirates, owner) {
   // Move an opponent's minion to another base.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(table.minions.notOwnedBy(user));
-         b <- user.callback.selectBase(Some(_) != m.base))
-      m.moveToBase(b)
+    for (m <- user.chooseTheirMinionInPlay;
+         b0 <- m.base;
+         b1 <- user.chooseOtherBaseInPlay(b0))
+      m.moveToBase(b1)
   }
 }
 

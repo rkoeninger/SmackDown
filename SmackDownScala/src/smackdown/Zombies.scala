@@ -3,8 +3,8 @@ package smackdown
 import Utils._
 
 object Zombies extends Faction("Zombies") {
-  override def bases(table: Table) = List[Base](new RhodesPlazaMall(table), new EvansCityCemetery(table))
-  override def cards(owner: Player) = List[DeckCard](
+  override def bases(table: Table) = Set[Base](new RhodesPlazaMall(table), new EvansCityCemetery(table))
+  override def cards(owner: Player) = Set[DeckCard](
     new Walker(owner), new Walker(owner), new Walker(owner), new Walker(owner),
     new TenaciousZ(owner), new TenaciousZ(owner), new TenaciousZ(owner),
     new GraveDigger(owner), new GraveDigger(owner),
@@ -39,9 +39,10 @@ class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombie
 
 class Walker(owner: Player) extends Minion("Walker", Zombies, 2, owner) {
   // Look at the top card of your deck, you may place it in your discard pile
-  // TODO: should reveal to all players or only to owner?
   override def play(base: Base) {
-    owner.reveal.foreach(card => if (owner.callback.selectBoolean) card.moveToDiscard)
+    for (c <- owner.peek)
+      if (owner.chooseYesNo)
+        c.moveToDiscard
   }
 }
 
@@ -52,7 +53,7 @@ class TenaciousZ(owner: Player) extends Minion("Tenacious Z", Zombies, 2, owner)
 class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owner) {
   // You may place a minion from your discard into your hand.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(owner.discardPile.minions))
+    for (m <- owner.callback.choose(owner.discardPile.minions))
       m.moveToHand
   }
 }
@@ -70,33 +71,39 @@ class TheyreComingToGetYou(owner: Player) extends Action("They're Coming to Get 
 }
 
 class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
-  // Select a minion from your deck, take all copies of that minion
-  // and put them in your discard
-  // shuffle your deck
+  // Select a minion from your deck, take all copies of that minion and put them in your discard.
+  // Shuffle your deck.
   override def play(user: Player) {
-    user.callback.select(user.drawPile.filterType[Minion]).foreach(m => {
-      user.drawPile.filter(_.getClass == m.getClass).foreach(_.moveToHand)
-    })
+    for (m0 <- user.callback.choose(user.drawPile.ofType[Minion].toSet);
+         m <- user.drawPile.filter(_.getClass == m0.getClass)) {
+      m.moveToDiscard
+      user.shuffle
+    }
   }
 }
 
 class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner) {
-  // Place a card from your discard into your hand
+  // Place a card from your discard into your hand.
   override def play(user: Player) {
-    user.callback.select(user.discardPile).foreach(_.moveToHand)
+    for (c <- user.callback.choose(user.discardPile))
+      c.moveToHand
   }
 }
 
 class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, owner) {
-  // you may play a minion from your discard as an extra minion 
+  // You may play a minion from your discard as an extra minion.
+  override def play(user: Player) {
+    for (m <- user.callback.choose(user.discardPile.minions))
+      user.playMinion(m)
+  }
 }
 
 class NotEnoughBullets(owner: Player) extends Action("Not Enough Bullets", Zombies, owner) {
-  // select a minion from your discard, take all copies of that minion and put them into your hand
+  // Select a minion from your discard, take all copies of that minion and put them into your hand.
   override def play(user: Player) {
-    user.callback.select(owner.discardPile.filterType[Minion]).foreach(m => {
-      user.discardPile.filter(_.getClass == m.getClass).foreach(_.moveToHand)
-    })
+    for (m0 <- user.callback.choose(user.discardPile.ofType[Minion].toSet);
+         m <- user.discardPile.filter(_.getClass == m0.getClass))
+      m.moveToHand
   }
 }
 

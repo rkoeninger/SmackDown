@@ -3,6 +3,9 @@ package smackdown
 import scala.reflect.Manifest
 
 object Utils {
+  implicit def anyAsOption[T](whatever: T) = new {
+    def maybe(predicate: T => Boolean) = if (predicate(whatever)) Some(whatever) else None
+  }
   implicit def simpleIsAs(any: Any) = new {
     /** Equivalent to Any.isInstanceOf[T] */
     def is[T](implicit m: Manifest[T]) = m.erasure.isInstance(any)

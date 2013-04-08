@@ -3,8 +3,8 @@ package smackdown
 import Utils._
 
 object Robots extends Faction("Robots") {
-  override def bases(table: Table) = List(new CentralBrain(table), new Factory2341337(table))
-  override def cards(owner: Player) = List(
+  override def bases(table: Table) = Set(new CentralBrain(table), new Factory2341337(table))
+  override def cards(owner: Player) = Set(
     new MicrobotAlpha(owner),
     new MicrobotArchive(owner),
     new MicrobotFixer(owner), new MicrobotFixer(owner),
@@ -61,11 +61,9 @@ class MicrobotFixer(owner: Player) extends Microbot("Microbot Fixer", owner) {
 
 class MicrobotGuard(owner: Player) extends Microbot("Microbot Guard", owner) {
   // Destroy a minion on this base with power less than the number of minions you have on this base.
-  // TODO: does that include this Microbot Guard?
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(base.minions.destructable.maxStrength(base.minions.ownedBy(owner).size - 1)))
+    for (m <- owner.chooseMinionOnBase(base, base.minions.ownedBy(owner).size - 1))
       m.destroy(owner)
-    // TODO: must destroy if possible even if only option belongs to the owner
   }
 }
 
@@ -77,7 +75,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Microbot Reclaimer", ow
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
   // You may play an extra minion power 2 or less.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(owner.hand.minions.maxStrength(2)))
+    for (m <- owner.chooseMinionInHand(2))
       owner.playMinion(m) 
   }
 }
@@ -87,7 +85,7 @@ class Hoverbot(owner: Player) extends Minion("Hoverbot", Robots, 3, owner) {
   override def play(base: Base) {
     for (c <- owner.reveal;
          m <- if (c.is[Minion]) Some(c.as[Minion]) else None)
-      if (owner.callback.selectBoolean)
+      if (owner.chooseYesNo)
         owner.playMinion(m)
   }
 }
@@ -109,7 +107,7 @@ class Nukebot(owner: Player) extends Minion("Nukebot", Robots, 5, owner) {
 class TechCenter(owner: Player) extends Action("Tech Center", Robots, owner) {
   // Choose a base, draw 1 card for each minion you have there.
   override def play(user: Player) {
-    for (b <- user.callback.selectBase)
+    for (b <- user.chooseBaseInPlay)
       user.draw(b.minions.ownedBy(user).size)
   }
 }

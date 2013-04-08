@@ -4,8 +4,8 @@ import scala.util.Random
 import Utils._
 
 object Wizards extends Faction("Wizards") {
-  override def bases(table: Table) = List(new GreatLibrary(table), new SchoolOfWizardry(table))
-  override def cards(owner: Player) = List(
+  override def bases(table: Table) = Set(new GreatLibrary(table), new SchoolOfWizardry(table))
+  override def cards(owner: Player) = Set[DeckCard](
     new Enchantress(owner), new Enchantress(owner), new Enchantress(owner), new Enchantress(owner),
     new Neophyte(owner), new Neophyte(owner), new Neophyte(owner),
     new Chronomage(owner), new Chronomage(owner),
@@ -16,7 +16,7 @@ class GreatLibrary(table: Table) extends Base("The Great Library", Wizards, 22, 
   // After this base scores, each player with a minion here may draw a card.
   override def afterScore(newBase: Base) {
     for (p <- minions.map(_.owner))
-      if (p.callback.selectBoolean)
+      if (p.chooseYesNo)
         p.draw
   }
 }
@@ -33,11 +33,17 @@ class Enchantress(owner: Player) extends Minion("Enchantress", Wizards, 2, owner
 }
 
 class Neophyte(owner: Player) extends Minion("Neophyte", Wizards, 2, owner) {
-  // reveal the top card of your deck.
-  // if it is an action,
+  // Reveal the top card of your deck.
+  // If it is an action,
   //     you may place it in your hand
-  //     or play it as an extra action
-  // otherwise, return it to the top of your draw pile
+  //     or play it as an extra action.
+  // Otherwise, return it to the top of your draw pile.
+  override def play(base: Base) {
+    for (c <- owner.reveal;
+         a <- c.maybe(_.is[Action]).map(_.as[Action]))
+      if (owner.chooseYesNo)
+        owner.playAction(a)
+  }
 }
 
 class Chronomage(owner: Player) extends Minion("Chronomage", Wizards, 3, owner) {
@@ -63,7 +69,7 @@ class TimeLoop(owner: Player) extends Action("Time Loop", Wizards, owner) {
 class Sacrifice(owner: Player) extends Action("Sacrifice", Wizards, owner) {
   // Choose one of your minions. Draw cards equal to its power. Destroy that minion.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(table.minions.ownedBy(user))) {
+    for (m <- user.chooseMyMinionInPlay) {
       user.draw(m.strength)
       m.destroy(user)
     }
@@ -88,7 +94,7 @@ class Scry(owner: Player) extends Action("Scry", Wizards, owner) {
   // Search your deck for an action and reveal it to all players.
   // Place it in your hand and shuffle your deck.
   override def play(user: Player) {
-    for (a <- user.callback.selectAction(a => user.drawPile.contains(a))) {
+    for (a <- user.chooseActionInDrawPile) {
       a.moveToHand
       user.drawPile = Random.shuffle(user.drawPile)
     }
@@ -106,7 +112,7 @@ class MassEnchantment(owner: Player) extends Action("Mass Enchantment", Wizards,
   // Play one revealed action as an extra action.
   // Return unused to the top of their decks.
   override def play(user: Player) {
-    for (a <- user.callback.selectAction(user.otherPlayers.map(_.reveal).ofType[Action].toSet)) {
+    for (a <- user.callback.choose(user.otherPlayers.map(_.reveal).ofType[Action].toSet)) {
       a.play(user)
       // TODO: Move to discard?
     }

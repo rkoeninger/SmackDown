@@ -3,8 +3,8 @@ package smackdown
 import Utils._
 
 object Ninjas extends Faction("Ninjas") {
-  override def bases(table: Table) = List[Base]()
-  override def cards(owner: Player) = List[DeckCard]()
+  override def bases(table: Table) = Set[Base]()
+  override def cards(owner: Player) = Set[DeckCard]()
 }
 
 class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 3, 2), table) {
@@ -37,7 +37,7 @@ class Shinobi(owner: Player) extends Minion("Shinobi", Ninjas, 3, owner) {
 class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, owner) {
   // You may destroy a minion power 3 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(base.minions.destructable.maxStrength(3)))
+    for (m <- owner.chooseMinionOnBase(base, 3))
       m.destroy(owner)
   }
 }
@@ -45,7 +45,7 @@ class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, o
 class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner) {
   // You may destory a minion on this base.
   override def play(base: Base) {
-    for (m <- owner.callback.selectMinion(base.minions.destructable))
+    for (m <- owner.chooseMinionOnBase(base))
       m.destroy(owner)
   }
 }
@@ -53,7 +53,7 @@ class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner
 class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
   // Destroy a minion of power 3 or less.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(table.minions.destructable.maxStrength(3)))
+    for (m <- user.chooseMinionInPlay(3))
       m.destroy(user)
   }
 }
@@ -61,9 +61,10 @@ class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
 class WayOfDeception(owner: Player) extends Action("Way of Deception", Ninjas, owner) {
   // Move one of your minions to a different base.
   override def play(user: Player) {
-    for (m <- user.callback.selectMinion(table.minions.ownedBy(user));
-         b <- user.callback.selectBase(Some(_) != m.base))
-      m.moveToBase(b)
+    for (m <- user.chooseMyMinionInPlay;
+         b0 <- m.base;
+         b1 <- user.chooseOtherBaseInPlay(b0))
+      m.moveToBase(b1)
   }
 }
 

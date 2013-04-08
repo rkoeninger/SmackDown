@@ -10,6 +10,7 @@ class Table {
   var basesInPlay = Set[Base]()
   var baseDiscardPile = Set[Base]()
   def minions() = basesInPlay.flatMap(_.minions)
+  def factions() = Set[Faction]()
 }
 
 class Player(val name: String, val factions: List[Faction], val table: Table, val callback: Callback) {
@@ -44,7 +45,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     draw(2)
     
     while (hand.size > 10)
-      callback.select(hand).foreach(_.moveToDiscard)
+      for (c <- chooseCardInHand) c.moveToDiscard
   }
   
   def draw() {
@@ -58,6 +59,10 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   
   // TODO: player/callback needs cardRevealed event
   def reveal() = {
+    if (replenishDrawPile) Some(drawPile(0)) else None
+  }
+  
+  def peek() = {
     if (replenishDrawPile) Some(drawPile(0)) else None
   }
   
@@ -93,8 +98,8 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
   
   def playMinion(m: Minion) {
-    for (m <- callback.selectMinion(hand.minions);
-         b <- callback.selectBase) {
+    for (m <- chooseMinionInHand;
+         b <- chooseBaseInPlay) {
       m.play(b)
       b.cards += m
     }
@@ -109,34 +114,37 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   def playAction(a: Action) {
     a.play(this)
   }
+  
+  def chooseBaseInPlay = callback.choose(table.basesInPlay)
+  def chooseOtherBaseInPlay(not: Base) = callback.choose(table.basesInPlay.filterNot(_ == not))
+  def chooseCardInHand = callback.choose(hand)
+  def chooseMinionInHand = callback.choose(hand.minions())
+  def chooseMinionInHand(maxStrength: Int) = callback.choose(hand.minions().maxStrength(maxStrength))
+  def chooseMinionInHand(player: Player) = callback.choose(player.hand)
+  def chooseMinionInPlay = callback.choose(table.minions)
+  def chooseMinionInPlay(maxStrength: Int) = callback.choose(table.minions.maxStrength(maxStrength))
+  def chooseMyMinionInPlay = callback.choose(table.minions.ownedBy(this))
+  def chooseTheirMinionInPlay = callback.choose(table.minions.filter(_.owner != this))
+  def chooseMinionOnBase(base: Base) = callback.choose(base.minions)
+  def chooseMinionOnBase(base: Base, maxStrength: Int) = callback.choose(base.minions.maxStrength(maxStrength))
+  def chooseMyMinionOnBase(base: Base) = callback.choose(base.minions.ownedBy(this))
+  def chooseActionInHand = callback.choose(hand.actions())
+  def chooseActionInDrawPile = callback.choose(drawPile.toSet.ofType[Action])
+  def choosePlayer = callback.choose(table.players.toSet)
+  def chooseOtherPlayer = callback.choose(otherPlayers.toSet)
+  def chooseFaction = callback.choose(table.factions)
+  def chooseYesNo = callback.confirm
 }
 
-// TODO: callback needs function that take a list of options, not predicates
-// TODO: merge Callback conveince methods into Player class?
 trait Callback {
   def choose[T](options: Set[T]): Option[T] = None
   def chooseOrder[T](options: List[T]): List[T] = options
   def confirm(): Boolean = false
-  
-  def selectBase(predicate: Base => Boolean): Option[Base] = None
-  def selectBase: Option[Base] = selectBase(_.isInPlay)
-  def selectMinion(predicate: Minion => Boolean): Option[Minion] = None
-  def selectMinion(options: Set[Minion]): Option[Minion] = None
-  def selectAction(predicate: Action => Boolean): Option[Action] = None
-  def selectAction(options: Set[Action]): Option[Action] = None
-  def selectFaction(): Option[Faction] = None
-  def selectPlayer(predicate: Player => Boolean): Option[Player] = None
-  def selectPlayer: Option[Player] = selectPlayer(x => true)
-  def selectOtherPlayer: Option[Player] = None
-  def selectFromHand(predicate: DeckCard => Boolean = (x => true)): Option[DeckCard] = None
-  def selectBoolean(): Boolean = false
-  def select(cards: Set[DeckCard]): Option[DeckCard] = None
-  def select(cards: List[DeckCard]): Option[DeckCard] = select(cards.toSet)
 }
 
 abstract class Faction(val name: String) {
-  def bases(table: Table): List[Base]
-  def cards(owner: Player): List[DeckCard]
+  def bases(table: Table): Set[Base]
+  def cards(owner: Player): Set[DeckCard]
 }
 
 abstract class Card(val name: String, val faction: Faction)
@@ -290,8 +298,8 @@ trait Move {
 class PlayMinion extends Move {
   def isPlayable(user: Player) = user.hand.exists(_.is[Minion])
   def play(user: Player) {
-    for (m <- user.callback.selectMinion(user.hand.minions);
-         b <- user.callback.selectBase) {
+    for (m <- user.chooseMinionInHand;
+         b <- user.chooseBaseInPlay) {
       m.play(b)
       b.cards += m
     }
@@ -301,7 +309,7 @@ class PlayMinion extends Move {
 class PlayAction extends Move {
   def isPlayable(user: Player) = user.hand.exists(_.is[Action])
   def play(user: Player) {
-    for (a <- user.callback.selectAction(user.hand.actions))
+    for (a <- user.chooseActionInHand)
       a.play(user)
   }
 }

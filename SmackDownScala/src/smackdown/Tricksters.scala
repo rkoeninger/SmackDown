@@ -1,8 +1,8 @@
 package smackdown
 
 object Tricksters extends Faction("Tricksters") {
-  override def bases(table: Table) = List[Base]()
-  override def cards(owner: Player) = List[DeckCard]()
+  override def bases(table: Table) = Set[Base]()
+  override def cards(owner: Player) = Set[DeckCard]()
 }
 
 class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23, (4, 2, 1), table) {
