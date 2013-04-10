@@ -5,11 +5,11 @@ import Utils._
 
 object Wizards extends Faction("Wizards") {
   override def bases(table: Table) = Set(new GreatLibrary(table), new SchoolOfWizardry(table))
-  override def cards(owner: Player) = Deck(
-    (4, new Enchantress(owner)),
-    (3, new Neophyte(owner)),
-    (2, new Chronomage(owner)),
-    (1, new Archmage(owner)))
+  override def cards(owner: Player) = Deck(owner,
+    4.of[Enchantress],
+    3.of[Neophyte],
+    2.of[Chronomage],
+    1.of[Archmage])
 }
 
 class GreatLibrary(table: Table) extends Base("The Great Library", Wizards, 22, (4, 2, 1), table) {

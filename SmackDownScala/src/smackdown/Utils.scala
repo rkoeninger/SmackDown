@@ -3,7 +3,8 @@ package smackdown
 import scala.reflect.Manifest
 
 object Deck {
-  def apply(cs: (Int, () => DeckCard)*) = cs.flatMap(x => Utils.int2Loop(x._1).times(x._2())).toSet
+  def apply(cs: (Int, () => DeckCard)*) = cs.flatMap(x => Utils.int2Awesome(x._1).times(x._2())).toSet
+  def apply(owner: Player, cs: (Player => Set[DeckCard])*) = cs.flatMap(x => x(owner)).toSet
 }
 
 object Utils {
@@ -41,11 +42,21 @@ object Utils {
     def cast[U](implicit m: Manifest[U]) = set.map(_.as[U])
     def any = set.size > 0
   }
-  implicit def int2Loop(i: Int) = new {
+  implicit def int2Awesome(i: Int) = new {
     /** Ruby-style n.times {} method */
-    def times[T](todo: => T) =
+    def times[T](todo: => T): List[T] =
       if (i <= 0) List[T]()
-      else 1 to i map(_ => todo)
+      else (1 to i map(_ => todo)).toList
+    
+    def of[A <: DeckCard](implicit m: Manifest[A]): Player => Set[DeckCard] =
+      (owner: Player) => {
+        if (i <= 0)
+          Set[DeckCard]()
+        else
+          (1 to i).map(_ =>
+            m.erasure.getConstructor(classOf[Player]).newInstance(owner).asInstanceOf[DeckCard]
+          ).toSet
+      }
   }
   implicit def bool2Cool(b: Boolean) = new {
     def not() = ! b

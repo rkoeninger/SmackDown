@@ -3,12 +3,12 @@ package smackdown
 import Utils._
 
 object Tricksters extends Faction("Tricksters") {
-  override def bases(table: Table) = Set[Base]()
-  override def cards(owner: Player) = Deck(
-    (4, new Gremlin(owner)),
-    (3, new Gnome(owner)),
-    (2, new Brownie(owner)),
-    (1, new Leprechaun(owner)))
+  override def bases(table: Table) = Set[Base](new CaveOfShinies(table), new MushroomKingdom(table))
+  override def cards(owner: Player) = Deck(owner,
+    4.of[Gremlin],
+    3.of[Gnome],
+    2.of[Brownie],
+    1.of[Leprechaun])
 }
 
 class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23, (4, 2, 1), table) {

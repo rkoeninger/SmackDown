@@ -4,19 +4,19 @@ import Utils._
 
 object Pirates extends Faction("Pirates") {
   override def bases(table: Table) = Set(new Tortuga(table), new GreyOpal(table))
-  override def cards(owner: Player) = Deck(
-    (4, new FirstMate(owner)),
-    (3, new SaucyWench(owner)),
-    (2, new Buccaneer(owner)),
-    (1, new PirateKing(owner)),
-    (2, new Broadside(owner)),
-    (2, new Dinghy(owner)),
-    (1, new Shanghai(owner)),
-    (1, new Cannon(owner)),
-    (1, new FullSail(owner)),
-    (1, new Powderkeg(owner)),
-    (1, new Swashbuckling(owner)),
-    (1, new SeaDogs(owner)))
+  override def cards(owner: Player) = Deck(owner,
+    4.of[FirstMate],
+    3.of[SaucyWench],
+    2.of[Buccaneer],
+    1.of[PirateKing],
+    2.of[Broadside],
+    2.of[Dinghy],
+    1.of[Shanghai],
+    1.of[Cannon],
+    1.of[FullSail],
+    1.of[Powderkeg],
+    1.of[Swashbuckling],
+    1.of[SeaDogs])
 }
 
 class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), table) {

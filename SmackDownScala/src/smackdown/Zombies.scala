@@ -4,19 +4,19 @@ import Utils._
 
 object Zombies extends Faction("Zombies") {
   override def bases(table: Table) = Set[Base](new RhodesPlazaMall(table), new EvansCityCemetery(table))
-  override def cards(owner: Player) = Deck(
-    (4, new Walker(owner)),
-    (3, new TenaciousZ(owner)),
-    (2, new GraveDigger(owner)),
-    (1, new ZombieLord(owner)),
-    (2, new GraveRobbing(owner)),
-    (2, new TheyKeepComing(owner)),
-    (1, new LendAHand(owner)),
-    (1, new TheyreComingToGetYou(owner)),
-    (1, new MallCrawl(owner)),
-    (1, new NotEnoughBullets(owner)),
-    (1, new Overrun(owner)),
-    (1, new Outbreak(owner)))
+  override def cards(owner: Player) = Deck(owner,
+    4.of[Walker],
+    3.of[TenaciousZ],
+    2.of[GraveDigger],
+    1.of[ZombieLord],
+    2.of[GraveRobbing],
+    2.of[TheyKeepComing],
+    1.of[LendAHand],
+    1.of[TheyreComingToGetYou],
+    1.of[MallCrawl],
+    1.of[NotEnoughBullets],
+    1.of[Overrun],
+    1.of[Outbreak])
 }
 
 class RhodesPlazaMall(table: Table) extends Base("Rhodes Plaza Mall", Zombies, 24, (0, 0, 0), table) {

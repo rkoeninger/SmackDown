@@ -3,12 +3,12 @@ package smackdown
 import Utils._
 
 object Ninjas extends Faction("Ninjas") {
-  override def bases(table: Table) = Set[Base]()
-  override def cards(owner: Player) = Deck(
-    (4, new NinjaAcolyte(owner)),
-    (3, new Shinobi(owner)),
-    (2, new TigerAssassin(owner)),
-    (1, new NinjaMaster(owner)))
+  override def bases(table: Table) = Set[Base](new TempleOfGoju(table), new NinjaDojo(table))
+  override def cards(owner: Player) = Deck(owner,
+    4.of[NinjaAcolyte],
+    3.of[Shinobi],
+    2.of[TigerAssassin],
+    1.of[NinjaMaster])
 }
 
 class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 3, 2), table) {
