@@ -3,19 +3,18 @@ package smackdown
 import Utils._
 
 object Robots extends Faction("Robots") {
-  override def bases(table: Table) = Set(new CentralBrain(table), new Factory2341337(table))
-  override def cards(owner: Player) = Set(
-    new MicrobotAlpha(owner),
-    new MicrobotArchive(owner),
-    new MicrobotFixer(owner), new MicrobotFixer(owner),
-    new MicrobotGuard(owner), new MicrobotGuard(owner),
-    new MicrobotReclaimer(owner), new MicrobotReclaimer(owner),
-    new Zapbot(owner), new Zapbot(owner), new Zapbot(owner), new Zapbot(owner),
-    new Hoverbot(owner), new Hoverbot(owner), new Hoverbot(owner),
-    new Warbot(owner), new Warbot(owner),
-    new Nukebot(owner),
-    new TechCenter(owner), new TechCenter(owner)
-  )
+  override def bases(table: Table) = Set(new CentralBrain(table), new Factory4361337(table))
+  override def cards(owner: Player) = Deck(
+    (1, new MicrobotAlpha(owner)),
+    (1, new MicrobotArchive(owner)),
+    (2, new MicrobotFixer(owner)),
+    (2, new MicrobotGuard(owner)),
+    (2, new MicrobotReclaimer(owner)),
+    (4, new Zapbot(owner)),
+    (3, new Hoverbot(owner)),
+    (2, new Warbot(owner)),
+    (1, new Nukebot(owner)),
+    (2, new TechCenter(owner)))
 }
 
 class CentralBrain(table: Table) extends Base("The Central Brain", Robots, 19, (4, 2, 1), table) {
@@ -23,7 +22,7 @@ class CentralBrain(table: Table) extends Base("The Central Brain", Robots, 19, (
   bonuses += Bonus(1)
 }
 
-class Factory2341337(table: Table) extends Base("Factory 234-1337", Robots, 25, (2, 2, 0), table) {
+class Factory4361337(table: Table) extends Base("Factory 234-1337", Robots, 25, (2, 2, 0), table) {
   // When this base scores, each player gets +1 point for every 5 minion strength.
   override def onScore() {
     for (p <- minions.map(_.owner))

@@ -2,7 +2,12 @@ package smackdown
 
 import scala.reflect.Manifest
 
+object Deck {
+  def apply(cs: (Int, () => DeckCard)*) = cs.flatMap(x => Utils.int2Loop(x._1).times(x._2())).toSet
+}
+
 object Utils {
+  implicit def byNameToNoArg[A](a: => A) = () => a
   implicit def anyAsOption(whatever: Any) = new {
     def optionCast[U](implicit m: Manifest[U]): Option[U] = if (simpleIsAs(whatever).is[U]) Some(whatever.as[U]) else None
   }
@@ -41,6 +46,9 @@ object Utils {
     def times[T](todo: => T) =
       if (i <= 0) List[T]()
       else 1 to i map(_ => todo)
+  }
+  implicit def bool2Cool(b: Boolean) = new {
+    def not() = ! b
   }
   implicit def minionSetEnhance(ms: Set[Minion]) = new {
     def destructable() = ms.filter(_.destructable)

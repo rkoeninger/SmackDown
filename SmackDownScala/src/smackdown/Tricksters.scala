@@ -4,7 +4,11 @@ import Utils._
 
 object Tricksters extends Faction("Tricksters") {
   override def bases(table: Table) = Set[Base]()
-  override def cards(owner: Player) = Set[DeckCard]()
+  override def cards(owner: Player) = Deck(
+    (4, new Gremlin(owner)),
+    (3, new Gnome(owner)),
+    (2, new Brownie(owner)),
+    (1, new Leprechaun(owner)))
 }
 
 class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23, (4, 2, 1), table) {

@@ -4,20 +4,19 @@ import Utils._
 
 object Pirates extends Faction("Pirates") {
   override def bases(table: Table) = Set(new Tortuga(table), new GreyOpal(table))
-  override def cards(owner: Player) = Set(
-    new FirstMate(owner), new FirstMate(owner), new FirstMate(owner), new FirstMate(owner),
-    new SaucyWench(owner), new SaucyWench(owner), new SaucyWench(owner),
-    new Buccaneer(owner), new Buccaneer(owner),
-    new PirateKing(owner),
-    new Broadside(owner), new Broadside(owner),
-    new Dinghy(owner), new Dinghy(owner),
-    new Shanghai(owner),
-    new Cannon(owner),
-    new FullSail(owner),
-    new Powderkeg(owner),
-    new Swashbuckling(owner),
-    new SeaDogs(owner)
-  )
+  override def cards(owner: Player) = Deck(
+    (4, new FirstMate(owner)),
+    (3, new SaucyWench(owner)),
+    (2, new Buccaneer(owner)),
+    (1, new PirateKing(owner)),
+    (2, new Broadside(owner)),
+    (2, new Dinghy(owner)),
+    (1, new Shanghai(owner)),
+    (1, new Cannon(owner)),
+    (1, new FullSail(owner)),
+    (1, new Powderkeg(owner)),
+    (1, new Swashbuckling(owner)),
+    (1, new SeaDogs(owner)))
 }
 
 class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), table) {
@@ -33,7 +32,7 @@ class GreyOpal(table: Table) extends Base("The Grey Opal", Pirates, 17, (3, 1, 1
   // Everyone on this base other than the winner
   // may move a minion to another base instead of to the discard pile.
   override def onScore() {
-    for (p <- score.filter(! _.winner).map(_.player);
+    for (p <- score.filter(_.winner.not).map(_.player);
          m <- p.chooseMyMinionOnBase(this);
          b <- p.chooseOtherBaseInPlay(this))
       m.moveToBase(b)

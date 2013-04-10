@@ -4,7 +4,11 @@ import Utils._
 
 object Ninjas extends Faction("Ninjas") {
   override def bases(table: Table) = Set[Base]()
-  override def cards(owner: Player) = Set[DeckCard]()
+  override def cards(owner: Player) = Deck(
+    (4, new NinjaAcolyte(owner)),
+    (3, new Shinobi(owner)),
+    (2, new TigerAssassin(owner)),
+    (1, new NinjaMaster(owner)))
 }
 
 class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 3, 2), table) {

@@ -4,7 +4,11 @@ import Utils._
 
 object Dinosaurs extends Faction("Dinosaurs") {
   override def bases(table: Table) = Set(new JungleOasis(table), new TarPits(table))
-  override def cards(owner: Player) = Set[DeckCard]()
+  override def cards(owner: Player) = Deck(
+    (4, new WarRaptor(owner)),
+    (3, new ArmorStego(owner)),
+    (2, new Laseratops(owner)),
+    (1, new KingRex(owner)))
 }
 
 class JungleOasis(table: Table) extends Base("Jungle Oasis", Dinosaurs, 12, (2, 0, 0), table)

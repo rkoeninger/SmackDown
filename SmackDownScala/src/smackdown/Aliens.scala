@@ -5,12 +5,11 @@ import Utils._
 
 object Aliens extends Faction("Aliens") {
   override def bases(table: Table) = Set(new Homeworld(table), new Mothership(table))
-  override def cards(owner: Player) = Set(
-    new Collector(owner), new Collector(owner), new Collector(owner), new Collector(owner),
-    new Scout(owner), new Scout(owner), new Scout(owner),
-    new Invader(owner), new Invader(owner),
-    new SupremeOverlord(owner)
-  )
+  override def cards(owner: Player) = Deck(
+    (4, new Collector(owner)),
+    (3, new Scout(owner)),
+    (3, new Invader(owner)),
+    (1, new SupremeOverlord(owner)))
 }
 
 class Homeworld(table: Table) extends Base("The Homeworld", Aliens, 23, (4, 2, 1), table) {
