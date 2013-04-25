@@ -10,6 +10,7 @@ class Table {
   var basesInPlay = Set[Base]()
   var baseDiscardPile = Set[Base]()
   def minions() = basesInPlay.flatMap(_.minions)
+  def actions() = basesInPlay.flatMap(_.actions) ++ minions().flatMap(_.actions())
   def factions() = Set[Faction]()
 }
 
@@ -142,6 +143,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   def chooseMyMinionOnBase(base: Base) = callback.choose(base.minions.ownedBy(this))
   def chooseActionInHand = callback.choose(hand.actions())
   def chooseActionInDrawPile = callback.choose(drawPile.toSet.ofType[Action])
+  def chooseActionInPlay = callback.choose(table.actions)
   def choosePlayer = callback.choose(table.players.toSet)
   def chooseOtherPlayer = callback.choose(otherPlayers.toSet)
   def chooseFaction = callback.choose(table.factions)
@@ -151,6 +153,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
 trait Callback {
   def choose[T](options: Set[T]): Option[T] = None
   def chooseOrder[T](options: List[T]): List[T] = options
+  def chooseAny[T](options: Set[T]): Set[T] = Set()
   def confirm(): Boolean = false
 }
 
@@ -161,12 +164,14 @@ abstract class Faction(val name: String) {
 
 abstract class Card(val name: String, val faction: Faction)
 
-class Base(name: String, faction: Faction, val breakPoint: Int, val scoreValues: (Int, Int, Int), val table: Table) extends Card(name, faction) {
+class Base(name: String, faction: Faction, startingBreakPoint: Int, val scoreValues: (Int, Int, Int), val table: Table) extends Card(name, faction) {
   
   var cards = Set[DeckCard]()
   def minions() = cards.ofType[Minion]
-  def actions() = cards.ofType[Minion]
-  var bonuses = Set[Bonus]()
+  def actions() = cards.ofType[Action]
+  var minionBonuses = Set[Bonus]()
+  var bonuses = Set[BreakPointBonus]()
+  def breakPoint() = math.max(0, startingBreakPoint + bonuses.map(_.getBonus(this)).sum)
   
   def totalStrength() = minions.map(_.strength).sum
   
@@ -266,11 +271,12 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
 
 class Minion(name: String, faction: Faction, startingStrength: Int, owner: Player) extends DeckCard(name, faction, owner) {
   var bonuses = Set[Bonus]()
+  var actions = Set[Action]()
   def isOnTable() = base.isDefined
   def strength() = startingStrength
     + bonuses.map(_.getBonus(this)).sum
     + (if (isOnBase) owner.bonuses.map(_.getBonus(this)).sum else 0)
-    + base.map(_.bonuses.map(_.getBonus(this)).sum).getOrElse(0)
+    + base.map(_.minionBonuses.map(_.getBonus(this)).sum).getOrElse(0)
   def play(base: Base) {}
   def destructable() = true
   def destroy(destroyer: Player) {
@@ -286,7 +292,7 @@ class Action(name: String, faction: Faction, owner: Player) extends DeckCard(nam
   def play(user: Player) {}
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}
-  def detach(card: Card) {}
+  def destroy(card: Card) {}
 }
 
 trait Bonus {
@@ -301,10 +307,24 @@ object Bonus {
     player.bonuses += bonus
     player.onTurnEnd { player.bonuses -= bonus }
   }
-  def untilTurnEnd(minion: Minion, value: Int) {
+  def untilTurnEnd(player: Player, minion: Minion, value: Int) {
     val bonus = Bonus(value)
     minion.bonuses += bonus
-    minion.owner.onTurnEnd { minion.bonuses -= bonus }
+    player.onTurnEnd { minion.bonuses -= bonus }
+  }
+}
+
+trait BreakPointBonus {
+  def getBonus(base: Base): Int
+}
+
+object BreakPointBonus {
+  def apply(func: Base => Int) = new BreakPointBonus { def getBonus(base: Base) = func(base) }
+  def apply(value: Int) = new BreakPointBonus { def getBonus(base: Base) = value }
+  def untilTurnEnd(player: Player, base: Base, func: Base => Int) {
+    val bonus = BreakPointBonus(func)
+    base.bonuses += bonus
+    player.onTurnEnd { base.bonuses -= bonus }
   }
 }
 

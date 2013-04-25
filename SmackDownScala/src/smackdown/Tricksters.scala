@@ -98,5 +98,9 @@ class EnshroudingMist(owner: Player) extends Action("Enshrouding Mist", Trickste
 }
 
 class Disenchant(owner: Player) extends Action("Disenchant", Tricksters, owner) {
-  
+  // Destroy an action attached to a minion or a base.
+  override def play(user: Player) {
+    for (a <- user.chooseActionInPlay)
+      a.destroy(this)
+  }
 }

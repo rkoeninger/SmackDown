@@ -45,7 +45,7 @@ class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owne
   // One minion gains +4 power until the end of your turn.
   override def play(user: Player) {
     for (m <- user.chooseMinionInPlay)
-      Bonus.untilTurnEnd(m, 4)
+      Bonus.untilTurnEnd(user, m, 4)
   }
 }
 
@@ -66,25 +66,32 @@ class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
     for (m <- user.chooseMinionInPlay)
       m.bonuses += bonus
   }
-  override def detach(card: Card) {
+  override def destroy(card: Card) {
     for (m <- card.optionCast[Minion])
       m.bonuses -= bonus
   }
 }
 
+class SurvivalOfTheFittest(owner: Player) extends Action("Survival of the Fittest", Dinosaurs, owner) {
+  // Destroy the lowest-power minion (you choose in case of a tie) on each base with a higher-power minion.
+  override def play(user: Player) {
+    for (b <- table.basesInPlay.filter(_.minions.map(_.strength).size > 1);
+         m <- user.callback.choose(b.minions.filter(_.strength < b.minions.map(_.strength).max)))
+      m.destroy(user)
+  }
+}
+
 class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {
-  // reduce the breakpoint of a base by the power of one of your minions on that base
-  // until end of turn
-  // (power/breakpoint are linked - if minion is given power boost, break point should lower further)
+  // Reduce the breakpoint of a base by the power of one of your minions on that base until end of turn.
+  override def play(user: Player) {
+    for (b <- user.chooseBaseInPlay;
+         m <- user.chooseMyMinionOnBase(b))
+      BreakPointBonus.untilTurnEnd(user, b, _ => - m.strength)
+  }
 }
 
-class WildlifePreserve {
+class WildlifePreserve(owner: Player) extends Action("Wildlife Preserve", Dinosaurs, owner) {
   // Play on a base. Ongoing: Your minoins here are not affected by other player's actions.
-}
-
-class SurvivalOfTheFittest {
-  // destroy the lowest-power minion (you choose in case of a tie)
-  // on a base with a higher-power minion
 }
 
 class ToothAndClawAndGuns(owner: Player) extends Action("Tooth and Claw... and Guns", Dinosaurs, owner) {

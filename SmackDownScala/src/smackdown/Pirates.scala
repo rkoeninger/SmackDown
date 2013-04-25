@@ -44,8 +44,8 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
   // you may move this minion to another base instead of to the discard pile.
   override def afterScore(base: Base, newBase: Base) {
     if (this.base == Some(base))
-      if (owner.chooseYesNo)
-        moveToBase(newBase)
+      for (b <- owner.chooseOtherBaseInPlay(base))
+        moveToBase(b)
   }
 }
 
@@ -99,7 +99,7 @@ class Dinghy(owner: Player) extends Action("Dinghy", Pirates, owner) {
   // Move up to two of your minions to other bases.
   override def play(user: Player) {
     2 times {
-      for (m <- user.chooseMinionInPlay;
+      for (m <- user.chooseMyMinionInPlay;
            b0 <- m.base;
            b1 <- user.chooseOtherBaseInPlay(b0))
         m.moveToBase(b1)
