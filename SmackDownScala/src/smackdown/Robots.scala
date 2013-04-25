@@ -78,7 +78,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Reclaimer", owner) {
     val selected = owner.callback.chooseAny(owner.discardPile.ofType[Minion].filter(isMicrobot(_)))
     if (selected.size > 0) {
       for (m <- selected)
-        m.moveToDrawPileTop
+        m --> DrawTop
       owner.shuffle
     }
   }

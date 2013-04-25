@@ -84,8 +84,8 @@ class Summon(owner: Player) extends Action("Summon", Wizards, owner) {
 class WindsOfChange(owner: Player) extends Action("Winds of Change", Wizards, owner) {
   // Shuffle your hand into your deck and draw 5 cards. You may play an extra action.
   override def play(user: Player) {
-    user.hand.foreach(_.moveToDrawPileTop)
-    user.drawPile = Random.shuffle(user.drawPile)
+    user.hand.foreach(_ --> DrawTop)
+    user.shuffle
     user.draw(5)
   }
 }
@@ -95,7 +95,7 @@ class Scry(owner: Player) extends Action("Scry", Wizards, owner) {
   // Place it in your hand and shuffle your deck.
   override def play(user: Player) {
     for (a <- user.chooseActionInDrawPile) {
-      a.moveToHand
+      a --> Hand
       user.drawPile = Random.shuffle(user.drawPile)
     }
   }

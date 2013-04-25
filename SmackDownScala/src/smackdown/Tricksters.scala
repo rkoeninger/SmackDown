@@ -24,7 +24,7 @@ class MushroomKingdom(table: Table) extends Base("Mushroom Kingdom", Tricksters,
   // from any base to here.
   override def onTurnBegin(player: Player) {
     for (m <- player.callback.choose(table.minions.filter(m => m.base != Some(this) && m.owner != player)))
-      m.moveToBase(this)
+      m --> this
   }
 }
 

@@ -31,7 +31,7 @@ class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombie
   // The winner discards their hand and draws 5 cards.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.winner).map(_.player)) {
-      for (c <- p.hand) c.moveToDiscard
+      for (c <- p.hand) c --> Discard
       p.draw(5)
     }
   }
@@ -42,7 +42,7 @@ class Walker(owner: Player) extends Minion("Walker", Zombies, 2, owner) {
   override def play(base: Base) {
     for (c <- owner.peek)
       if (owner.chooseYesNo)
-        c.moveToDiscard
+        c --> Discard
   }
 }
 
@@ -54,7 +54,7 @@ class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owne
   // You may place a minion from your discard into your hand.
   override def play(base: Base) {
     for (m <- owner.callback.choose(owner.discardPile.minions))
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -76,7 +76,7 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
   override def play(user: Player) {
     for (m0 <- user.callback.choose(user.drawPile.ofType[Minion].toSet);
          m <- user.drawPile.filter(_.getClass == m0.getClass)) {
-      m.moveToDiscard
+      m --> Discard
       user.shuffle
     }
   }
@@ -86,7 +86,7 @@ class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner
   // Place a card from your discard into your hand.
   override def play(user: Player) {
     for (c <- user.callback.choose(user.discardPile))
-      c.moveToHand
+      c --> Hand
   }
 }
 
@@ -103,7 +103,7 @@ class NotEnoughBullets(owner: Player) extends Action("Not Enough Bullets", Zombi
   override def play(user: Player) {
     for (m0 <- user.callback.choose(user.discardPile.ofType[Minion].toSet);
          m <- user.discardPile.filter(_.getClass == m0.getClass))
-      m.moveToHand
+      m --> Hand
   }
 }
 

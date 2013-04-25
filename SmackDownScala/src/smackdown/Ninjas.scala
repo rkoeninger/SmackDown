@@ -18,7 +18,7 @@ class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 
     for (p <- minions.groupBy(_.owner).map(_._1)) {
       val highestStrength = minions.ownedBy(p).map(_.strength).max
       for (m <- minions.ownedBy(p).filter(_.strength == highestStrength))
-        m.moveToDrawPileBottom // TODO: What if there's a tie for highest-powered?
+        m --> DrawBottom // TODO: What if there's a tie for highest-powered?
     }
   }
 }
@@ -68,7 +68,7 @@ class WayOfDeception(owner: Player) extends Action("Way of Deception", Ninjas, o
     for (m <- user.chooseMyMinionInPlay;
          b0 <- m.base;
          b1 <- user.chooseOtherBaseInPlay(b0))
-      m.moveToBase(b1)
+      m --> b1
   }
 }
 

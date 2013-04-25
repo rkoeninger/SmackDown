@@ -46,11 +46,11 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     draw(2)
     
     while (hand.size > 10)
-      for (c <- chooseCardInHand) c.moveToDiscard
+      for (c <- chooseCardInHand) c --> Discard
   }
   
   def draw() {
-    if (replenishDrawPile) { if (! drawPile.isEmpty) drawPile(0).moveToHand }
+    if (replenishDrawPile) { if (! drawPile.isEmpty) drawPile(0) --> Hand }
   }
   
   def draw(count: Int) {
@@ -164,7 +164,15 @@ abstract class Faction(val name: String) {
 
 abstract class Card(val name: String, val faction: Faction)
 
-class Base(name: String, faction: Faction, startingBreakPoint: Int, val scoreValues: (Int, Int, Int), val table: Table) extends Card(name, faction) {
+sealed trait Destination
+
+object Hand extends Destination
+object Discard extends Destination
+object DrawTop extends Destination
+object DrawBottom extends Destination
+
+class Base(name: String, faction: Faction, startingBreakPoint: Int, val scoreValues: (Int, Int, Int), val table: Table)
+extends Card(name, faction) with Destination {
   
   var cards = Set[DeckCard]()
   def minions() = cards.ofType[Minion]
@@ -224,39 +232,38 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
   
   def table() = owner.table
   
-  def moveToHand() {
-    if (! isInHand) {
+  def -->(dest: Destination) = dest match {
+    case Hand => if (! isInHand) {
       remove
       owner.hand += this
     }
-  }
-  def moveToDiscard() {
-    if (! isInDiscardPile) {
+    case Discard => if (! isInDiscardPile) {
       remove
       owner.discardPile += this
     }
-  }
-  def moveToDrawPileTop() {
-    remove
-    owner.drawPile = this :: owner.drawPile
-  }
-  def moveToDrawPileBottom() {
-    remove
-    owner.drawPile = owner.drawPile :+ this
-  }
-  def moveToBase(base: Base) {
-    remove
-    if (this.base != Some(base)) {
-      base.cards += this
-      this.base = Some(base)
+    case DrawTop => {
+      remove
+      owner.drawPile = this :: owner.drawPile
     }
+    case DrawBottom => {
+      remove
+      owner.drawPile = owner.drawPile :+ this
+    }
+    case base: Base => {
+      remove
+      if (this.base != Some(base)) {
+        base.cards += this
+        this.base = Some(base)
+      }
+    }
+    case _ => { sys.error("Invalid DeckCard destination") }
   }
-  private def remove() {
+  protected def remove() {
     if (isInHand) owner.hand -= this
     else if (isInDrawPile) owner.drawPile = owner.drawPile.filterNot(_ == this)
     else if (isInDiscardPile) owner.discardPile -= this
     else if (isOnBase) {
-      base.map(_.cards -= this)
+      base.foreach(_.cards -= this)
       base = None
     }
   }
@@ -269,7 +276,9 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
   def endTurn() {}
 }
 
-class Minion(name: String, faction: Faction, startingStrength: Int, owner: Player) extends DeckCard(name, faction, owner) {
+class Minion(name: String, faction: Faction, startingStrength: Int, owner: Player)
+extends DeckCard(name, faction, owner) with Destination {
+  
   var bonuses = Set[Bonus]()
   var actions = Set[Action]()
   def isOnTable() = base.isDefined
@@ -280,7 +289,7 @@ class Minion(name: String, faction: Faction, startingStrength: Int, owner: Playe
   def play(base: Base) {}
   def destructable() = true
   def destroy(destroyer: Player) {
-    if (destructable) moveToDiscard
+    if (destructable) this --> Discard
   }
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}
@@ -289,6 +298,26 @@ class Minion(name: String, faction: Faction, startingStrength: Int, owner: Playe
 }
 
 class Action(name: String, faction: Faction, owner: Player) extends DeckCard(name, faction, owner) {
+  override def -->(dest: Destination) = dest match {
+    case minion: Minion => {
+      remove
+      if (this.minion != Some(minion)) {
+        minion.actions += this
+        this.minion = Some(minion)
+      }
+    }
+    case _ => super .-->(dest)
+  }
+  protected override def remove() {
+    if (isOnMinion) {
+      minion.foreach(_.actions -= this)
+      minion = None
+    } else {
+      super.remove()
+    }
+  }
+  var minion: Option[Minion] = None
+  def isOnMinion() = minion.isDefined
   def play(user: Player) {}
   def beforeScore(base: Base) {}
   def afterScore(base: Base, newBase: Base) {}

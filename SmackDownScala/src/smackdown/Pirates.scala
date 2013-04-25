@@ -24,7 +24,7 @@ class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), tabl
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.runnerUp).map(_.player).filter(p => minions.ownedBy(p).any);
          m <- p.chooseMyMinionOnBase(this))
-      m.moveToBase(newBase)
+      m --> newBase
   }
 }
 
@@ -35,7 +35,7 @@ class GreyOpal(table: Table) extends Base("The Grey Opal", Pirates, 17, (3, 1, 1
     for (p <- score.filter(_.winner.not).map(_.player);
          m <- p.chooseMyMinionOnBase(this);
          b <- p.chooseOtherBaseInPlay(this))
-      m.moveToBase(b)
+      m --> b
   }
 }
 
@@ -45,7 +45,7 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
   override def afterScore(base: Base, newBase: Base) {
     if (this.base == Some(base))
       for (b <- owner.chooseOtherBaseInPlay(base))
-        moveToBase(b)
+        this --> b
   }
 }
 
@@ -62,7 +62,7 @@ class Buccaneer(owner: Player) extends Minion("Buccaneer", Pirates, 4, owner) {
   override def destroy(destroyer: Player) {
     for (b0 <- base;
          b1 <- owner.chooseOtherBaseInPlay(b0))
-      moveToBase(b1)
+      this --> b1
   }
 }
 
@@ -71,7 +71,7 @@ class PirateKing(owner: Player) extends Minion("Pirate King", Pirates, 5, owner)
   override def beforeScore(base: Base) {
     if (isOnTable && Some(base) != this.base)
       if (owner.chooseYesNo)
-        moveToBase(base)
+        this --> base
   }
 }
 
@@ -102,7 +102,7 @@ class Dinghy(owner: Player) extends Action("Dinghy", Pirates, owner) {
       for (m <- user.chooseMyMinionInPlay;
            b0 <- m.base;
            b1 <- user.chooseOtherBaseInPlay(b0))
-        m.moveToBase(b1)
+        m --> b1
     }
   }
 }
@@ -116,7 +116,7 @@ class FullSail(owner: Player) extends Action("Full Sail", Pirates, owner) {
       for (m <- user.chooseMyMinionInPlay;
            b0 <- m.base;
            b1 <- user.chooseOtherBaseInPlay(b0))
-        m.moveToBase(b1)
+        m --> b1
     }
   }
   override def beforeScore(base: Base) {
@@ -144,7 +144,7 @@ class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
          b0 <- user.chooseBaseInPlay;
          b1 <- user.chooseOtherBaseInPlay(b0);
          m <- b0.minions.ofFaction(f))
-      m.moveToBase(b1)
+      m --> b1
   }
 }
 
@@ -154,7 +154,7 @@ class Shanghai(owner: Player) extends Action("Shanghai", Pirates, owner) {
     for (m <- user.chooseTheirMinionInPlay;
          b0 <- m.base;
          b1 <- user.chooseOtherBaseInPlay(b0))
-      m.moveToBase(b1)
+      m --> b1
   }
 }
 

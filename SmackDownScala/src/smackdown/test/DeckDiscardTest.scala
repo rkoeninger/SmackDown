@@ -1,6 +1,6 @@
 package smackdown.test
 
-import smackdown.{Action, Base, Callback, DeckCard, Faction, Minion, Player, Table}
+import smackdown._
 import org.scalatest.FunSpec
 
 class DeckDiscardTest extends FunSpec {
@@ -11,11 +11,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set()
       player.hand = Set()
       
-      card1.moveToHand
+      card1 --> Hand
       assert(player.hand == Set(card1))
       assert(player.drawPile == List(card2, card3, card4))
       
-      card3.moveToHand
+      card3 --> Hand
       assert(player.hand == Set(card1, card3))
       assert(player.drawPile == List(card2, card4))
     }
@@ -24,11 +24,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set(card1)
       player.hand = Set(card2, card3, card4)
       
-      card2.moveToDiscard
+      card2 --> Discard
       assert(player.hand == Set(card3, card4))
       assert(player.discardPile == Set(card1, card2))
       
-      card3.moveToDiscard
+      card3 --> Discard
       assert(player.hand == Set(card4))
       assert(player.discardPile == Set(card1, card2, card3))
     }
@@ -38,16 +38,16 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set()
       
-      card1.moveToBase(base)
-      card2.moveToBase(base)
+      card1 --> base
+      card2 --> base
       assert(player.hand == Set())
       assert(base.cards == Set(card1, card2))
       
-      card1.moveToHand
+      card1 --> Hand
       assert(player.hand == Set(card1))
       assert(base.cards == Set(card2))
       
-      card2.moveToHand
+      card2 --> Hand
       assert(player.hand == Set(card1, card2))
       assert(base.cards == Set())
     }
@@ -56,11 +56,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set(card1, card2, card3, card4)
       player.hand = Set()
       
-      card1.moveToHand
+      card1 --> Hand
       assert(player.hand == Set(card1))
       assert(player.discardPile == Set(card2, card3, card4))
       
-      card3.moveToHand
+      card3 --> Hand
       assert(player.hand == Set(card1, card3))
       assert(player.discardPile == Set(card2, card4))
     }
@@ -70,11 +70,11 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set(card4)
       
-      card2.moveToBase(base)
+      card2 --> base
       assert(player.discardPile == Set(card1, card3))
       assert(base.cards == Set(card4, card2))
       
-      card3.moveToBase(base)
+      card3 --> base
       assert(player.discardPile == Set(card1))
       assert(base.cards == Set(card2, card3, card4))
     }
@@ -84,16 +84,16 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set()
       
-      card1.moveToBase(base)
-      card2.moveToBase(base)
+      card1 --> base
+      card2 --> base
       assert(player.hand == Set())
       assert(base.cards == Set(card1, card2))
       
-      card1.moveToDrawPileBottom
+      card1 --> DrawBottom
       assert(player.drawPile == List(card3, card4, card1))
       assert(base.cards == Set(card2))
       
-      card2.moveToDrawPileBottom
+      card2 --> DrawBottom
       assert(player.drawPile == List(card3, card4, card1, card2))
       assert(base.cards == Set())
     }

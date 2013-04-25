@@ -24,7 +24,7 @@ class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2,
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.winner).map(_.player);
          m <- p.chooseMinionOnBase(this, 3))
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -32,7 +32,7 @@ class Collector(owner: Player) extends Minion("Collector", Aliens, 2, owner) {
   // You may return a minion power 3 or less on this base to its owner's hand.
   override def play(base: Base) {
     for (m <- owner.chooseMinionOnBase(base, 3))
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -41,7 +41,7 @@ class Scout(owner: Player) extends Minion("Scout", Aliens, 3, owner) {
   // you may place this minion in your hand instead of the discard pile.
   override def afterScore(base: Base, newBase: Base) {
     if (owner.chooseYesNo)
-      moveToHand
+      this --> Hand
   }
 }
 
@@ -54,7 +54,7 @@ class SupremeOverlord(owner: Player) extends Minion("Supreme Overlord", Aliens, 
   // You may return a minion to its owner's hand.
   override def play(base: Base) {
     for (m <- owner.chooseMinionInPlay)
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -62,7 +62,7 @@ class BeamUp(owner: Player) extends Action("Beam Up", Aliens, owner) {
   // Return a minion to its owner's hand.
   override def play(user: Player) {
     for (m <- user.chooseMinionInPlay)
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -72,7 +72,7 @@ class Invasion(owner: Player) extends Action("Invasion", Aliens, owner) {
     for (m <- user.chooseMinionInPlay;
          b0 <- m.base;
          b1 <- user.chooseOtherBaseInPlay(b0))
-      m.moveToBase(b1)
+      m --> b1
   }
 }
 
@@ -81,7 +81,7 @@ class Abduction(owner: Player) extends Action("Abduction", Aliens, owner) {
   // Play an extra minion.
   override def play(user: Player) {
     for (m <- user.chooseMinionInPlay)
-      m.moveToHand
+      m --> Hand
     user.playMinion
   }
 }
@@ -90,7 +90,7 @@ class Disintegrator(owner: Player) extends Action("Disintegrator", Aliens, owner
   // Place a minion power 3 or less on the bottom of its owner's draw pile.
   override def play(user: Player) {
     for (m <- user.chooseMinionInPlay(3))
-      m.moveToDrawPileBottom
+      m --> DrawBottom
   }
 }
 
@@ -99,7 +99,7 @@ class CropCircles(owner: Player) extends Action("Crop Circles", Aliens, owner) {
   override def play(user: Player) {
     for (b <- user.chooseBaseInPlay;
          m <- b.minions)
-      m.moveToHand
+      m --> Hand
   }
 }
 
@@ -109,7 +109,7 @@ class Probe(owner: Player) extends Action("Probe", Aliens, owner) {
   override def play(user: Player) {
     for (p <- user.chooseOtherPlayer;
          m <- user.chooseMinionInHand(p))
-      m.moveToDiscard
+      m --> Discard
   }
 }
 
