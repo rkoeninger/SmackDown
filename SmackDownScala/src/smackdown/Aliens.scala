@@ -9,7 +9,15 @@ object Aliens extends Faction("Aliens") {
     4.of[Collector],
     3.of[Scout],
     2.of[Invader],
-    1.of[SupremeOverlord])
+    1.of[SupremeOverlord],
+    2.of[BeamUp],
+    2.of[Disintegrator],
+    1.of[CropCircles],
+    1.of[Abduction],
+    1.of[Probe],
+    1.of[Terraforming],
+    1.of[JammedSignal],
+    1.of[Invasion])
 }
 
 class Homeworld(table: Table) extends Base("The Homeworld", Aliens, 23, (4, 2, 1), table) {

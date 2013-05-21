@@ -8,7 +8,15 @@ object Tricksters extends Faction("Tricksters") {
     4.of[Gremlin],
     3.of[Gnome],
     2.of[Brownie],
-    1.of[Leprechaun])
+    1.of[Leprechaun],
+    2.of[EnshroudingMist],
+    2.of[Disenchant],
+    1.of[TakeTheShinies],
+    1.of[Hideout],
+    1.of[FlameTrap],
+    1.of[BlockThePath],
+    1.of[PayThePiper],
+    1.of[MarkOfSleep])
 }
 
 class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23, (4, 2, 1), table) {

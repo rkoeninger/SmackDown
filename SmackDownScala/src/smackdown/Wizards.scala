@@ -9,7 +9,15 @@ object Wizards extends Faction("Wizards") {
     4.of[Enchantress],
     3.of[Neophyte],
     2.of[Chronomage],
-    1.of[Archmage])
+    1.of[Archmage],
+    2.of[Summon],
+    2.of[MysticStudies],
+    1.of[Scry],
+    1.of[MassEnchantment],
+    1.of[TimeLoop],
+    1.of[Portal],
+    1.of[WindsOfChange],
+    1.of[Sacrifice])
 }
 
 class GreatLibrary(table: Table) extends Base("The Great Library", Wizards, 22, (4, 2, 1), table) {

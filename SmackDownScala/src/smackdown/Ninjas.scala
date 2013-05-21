@@ -8,7 +8,15 @@ object Ninjas extends Faction("Ninjas") {
     4.of[NinjaAcolyte],
     3.of[Shinobi],
     2.of[TigerAssassin],
-    1.of[NinjaMaster])
+    1.of[NinjaMaster],
+    2.of[SeeingStars],
+    2.of[Infiltrate],
+    1.of[Poison],
+    1.of[Assassination],
+    1.of[WayOfDeception],
+    1.of[HiddenNinja],
+    1.of[Disguise],
+    1.of[SmokeBomb])
 }
 
 class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 3, 2), table) {

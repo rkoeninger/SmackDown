@@ -8,7 +8,15 @@ object Dinosaurs extends Faction("Dinosaurs") {
     4.of[WarRaptor],
     3.of[ArmorStego],
     2.of[Laseratops],
-    1.of[KingRex])
+    1.of[KingRex],
+    2.of[Howl],
+    2.of[Augmentation],
+    1.of[Upgrade],
+    1.of[NaturalSelection],
+    1.of[Rampage],
+    1.of[SurvivalOfTheFittest],
+    1.of[WildlifePreserve],
+    1.of[ToothAndClawAndGuns])
 }
 
 class JungleOasis(table: Table) extends Base("Jungle Oasis", Dinosaurs, 12, (2, 0, 0), table)
