@@ -1,5 +1,7 @@
 package smackdown
 
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
 import scala.reflect.Manifest
 
 object Deck {
@@ -14,7 +16,7 @@ object Utils {
   }
   implicit def simpleIsAs(any: Any) = new {
     /** Equivalent to Any.isInstanceOf[T] */
-    def is[T](implicit m: Manifest[T]) = m.erasure.isInstance(any)
+    def is[T](implicit m: Manifest[T]) = m.runtimeClass.isInstance(any)
     /** Equivalent to Any.asInstanceOf[T] */
     def as[T] = any.asInstanceOf[T]
   }
@@ -54,7 +56,7 @@ object Utils {
           Set[DeckCard]()
         else
           (1 to i).map(_ =>
-            m.erasure.getConstructor(classOf[Player]).newInstance(owner).asInstanceOf[DeckCard]
+            m.runtimeClass.getConstructor(classOf[Player]).newInstance(owner).asInstanceOf[DeckCard]
           ).toSet
       }
   }

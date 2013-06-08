@@ -1,5 +1,6 @@
 package smackdown.test
 
+import scala.language.reflectiveCalls
 import smackdown.{Action, Base, Callback, DeckCard, Faction, Minion, Player, Table}
 import smackdown.Utils._
 import org.scalatest.FunSpec

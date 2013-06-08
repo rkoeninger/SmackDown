@@ -1,5 +1,7 @@
 package smackdown
 
+import scala.language.implicitConversions
+import scala.language.reflectiveCalls
 import scala.util.Random
 import Utils._
 
