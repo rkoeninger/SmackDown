@@ -25,7 +25,7 @@ class CaveOfShinies(table: Table) extends Base("Cave of Shinies", Tricksters, 23
   // When a minion is destroyed here, its owner gains +1 point.
   override def minionDestroyed(minion: Minion, base: Base) {
     if (base == this)
-      minion.owner.points += 1
+      minion.owner addPoints 1
   }
 }
 

@@ -60,9 +60,6 @@ object Utils {
           ).toSet
       }
   }
-  implicit def bool2Cool(b: Boolean) = new {
-    def not() = ! b
-  }
   implicit def minionSetEnhance(ms: Set[Minion]) = new {
     def destructable() = ms.filter(_.destructable)
     def ownedBy(p: Player) = ms.filter(_.owner == p)

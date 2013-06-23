@@ -57,7 +57,7 @@ class Scout(owner: Player) extends Minion("Scout", Aliens, 3, owner) {
 
 class Invader(owner: Player) extends Minion("Invader", Aliens, 3, owner) {
   // You gain +1 VP.
-  override def play(base: Base) { owner.points += 1 }
+  override def play(base: Base) { owner addPoints 1 }
 }
 
 class SupremeOverlord(owner: Player) extends Minion("Supreme Overlord", Aliens, 5, owner) {

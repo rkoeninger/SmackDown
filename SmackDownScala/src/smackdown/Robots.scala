@@ -28,7 +28,7 @@ class Factory4361337(table: Table) extends Base("Factory 234-1337", Robots, 25, 
   // When this base scores, each player gets +1 point for every 5 minion strength.
   override def onScore() {
     for (p <- minions.map(_.owner))
-      p.points += minions.ownedBy(p).map(_.strength).sum / 5
+      p addPoints (minions.ownedBy(p).map(_.strength).sum / 5)
   }
 }
 

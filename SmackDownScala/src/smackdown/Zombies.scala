@@ -25,7 +25,7 @@ class RhodesPlazaMall(table: Table) extends Base("Rhodes Plaza Mall", Zombies, 2
   // When this base scores, each player gets +1 point for each minion they have here.
   override def afterScore(newBase: Base) {
     for (p <- minions.map(_.owner))
-      p.points += minions.count(_.owner == p)
+      p addPoints minions.count(_.owner == p)
   }
 }
 

@@ -17,7 +17,15 @@ class Table {
 }
 
 class Player(val name: String, val factions: List[Faction], val table: Table, val callback: Callback) {
-  var points = 0 // TODO: player/callback needs pointsModified event
+  private var pointsGained = 0
+  
+  def points = pointsGained
+  def addPoints(amount: Int) {
+    val oldPoints = pointsGained
+    pointsGained += amount
+    callback.pointsGained(this, oldPoints, pointsGained)
+  }
+  
   var hand = Set[DeckCard]()
   var discardPile = Set[DeckCard]()
   var drawPile = List[DeckCard]()
@@ -60,14 +68,22 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     // without the x =>, the draw(Int) version will be used, causing infinite loop
   }
   
-  // TODO: player/callback needs cardRevealed event
-  def reveal() = {
-    if (replenishDrawPile) Some(drawPile(0)) else None
-  }
+  def reveal() = if (replenishDrawPile) {
+      val card = drawPile(0)
+      callback.reveal(card)
+      Some(card)
+    }
+    else None
   
-  def peek() = {
-    if (replenishDrawPile) Some(drawPile(0)) else None
-  }
+  def reveal(count: Int) = if (replenishDrawPile) {
+      val actualCount = math.min(count, drawPile.size)
+      val cards = drawPile.take(actualCount).toSet
+      callback.reveal(cards)
+      cards
+    }
+    else Set[Card]()
+    
+  def peek() = if (replenishDrawPile) Some(drawPile(0)) else None
   
   def shuffle() {
     drawPile = Random.shuffle(drawPile)
@@ -157,6 +173,9 @@ trait Callback {
   def chooseOrder[T](options: List[T]): List[T] = options
   def chooseAny[T](options: Set[T]): Set[T] = Set()
   def confirm(): Boolean = false
+  def reveal(card: DeckCard) {}
+  def reveal(cards: Set[DeckCard]) {}
+  def pointsGained(player: Player, oldPoints: Int, newPoints: Int) {}
 }
 
 abstract class Faction(val name: String) {
@@ -203,24 +222,24 @@ extends Card(name, faction) with Destination {
    * with less strength, the two players with greater strength will get scoreValues[0] and rank 1,
    * the weaker player will get scoreValues[2] and rank 2.
    */
-  def score(): Set[Rank] = {
+  def score() = {
     val playerStrengths = minions.groupBy(_.owner).map(x => (x._1, x._2.map(_.strength).sum))
     val sortedStrengths = playerStrengths.values.toList.distinct.sorted.reverse
     var rewardCount = 0
     var rewardRank = 1
     
     val ranks = sortedStrengths.map(strength =>
-      if (rewardCount < 3) {
+      if (rewardCount < 3) Some {
         val reward = scoreValues.productElement(rewardCount).as[Int]
         val rewardGroup = playerStrengths.filter(_._2 == strength).map(x => new Rank(x._1, reward, rewardRank)).toSet
         rewardCount += rewardGroup.size
         rewardRank += 1
         rewardGroup
       }
-      else Set[Rank]()
+      else None
     )
     
-    if (ranks.isEmpty) Set[Rank]() else ranks.reduce(_ ++ _)
+    ranks.flatten.foldLeft(Set[Rank]())(_ ++ _)
   }
 }
 

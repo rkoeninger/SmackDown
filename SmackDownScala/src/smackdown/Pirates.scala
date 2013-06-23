@@ -34,7 +34,7 @@ class GreyOpal(table: Table) extends Base("The Grey Opal", Pirates, 17, (3, 1, 1
   // Everyone on this base other than the winner
   // may move a minion to another base instead of to the discard pile.
   override def onScore() {
-    for (p <- score.filter(_.winner.not).map(_.player);
+    for (p <- score.filter(! _.winner).map(_.player);
          m <- p.chooseMyMinionOnBase(this);
          b <- p.chooseOtherBaseInPlay(this))
       m --> b
@@ -113,13 +113,12 @@ class FullSail(owner: Player) extends Action("Full Sail", Pirates, owner) {
   // Move any number of your minions to other bases.
   // Special: Before a base scores, you may play this card.
   override def play(user: Player) {
-    while (true) {
-      // FIXME: Infinite loop - how to propogate Cancel/Done choice?
       for (m <- user.chooseMyMinionInPlay;
            b0 <- m.base;
-           b1 <- user.chooseOtherBaseInPlay(b0))
+           b1 <- user.chooseOtherBaseInPlay(b0)) {
         m --> b1
-    }
+        play(user)
+      }
   }
   override def beforeScore(base: Base) {
     if (isInHand && owner.chooseYesNo) play(owner)
