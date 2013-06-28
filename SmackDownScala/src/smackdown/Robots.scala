@@ -66,7 +66,7 @@ class MicrobotFixer(owner: Player) extends Microbot("Fixer", owner) {
 class MicrobotGuard(owner: Player) extends Microbot("Guard", owner) {
   // Destroy a minion on this base with power less than the number of minions you have on this base.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionOnBase(base, base.minions.ownedBy(owner).size - 1))
+    for (m <- owner.choose.minion.onBase(base).strengthAtMost(base.minions.ownedBy(owner).size - 1))
       m.destroy(owner)
   }
 }
@@ -89,7 +89,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Reclaimer", owner) {
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
   // You may play an extra minion power 2 or less.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionInHand(2))
+    for (m <- owner.choose.minion.inHand.strengthAtMost(2))
       owner.playMinion(m) 
   }
 }
@@ -98,7 +98,7 @@ class Hoverbot(owner: Player) extends Minion("Hoverbot", Robots, 3, owner) {
   // Reveal the top card of your draw pile, if it is a minion, you may play it as an extra minion.
   override def play(base: Base) {
     for (c <- owner.reveal;
-         m <- if (c.is[Minion]) Some(c.as[Minion]) else None)
+         m <- c.optionCast[Minion])
       if (owner.chooseYesNo)
         owner.playMinion(m)
   }
@@ -121,7 +121,7 @@ class Nukebot(owner: Player) extends Minion("Nukebot", Robots, 5, owner) {
 class TechCenter(owner: Player) extends Action("Tech Center", Robots, owner) {
   // Choose a base, draw 1 card for each minion you have there.
   override def play(user: Player) {
-    for (b <- user.chooseBaseInPlay)
+    for (b <- user.choose.base.inPlay)
       user.draw(b.minions.ownedBy(user).size)
   }
 }

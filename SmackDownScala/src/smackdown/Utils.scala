@@ -71,4 +71,8 @@ object Utils {
     def minions() = dcs.ofType[Minion]
     def actions() = dcs.ofType[Action]
   }
+  implicit def deckCardListEnhance(dcl: List[DeckCard]) = new {
+    def minions() = dcl.ofType[Minion]
+    def actions() = dcl.ofType[Action]
+  }
 }

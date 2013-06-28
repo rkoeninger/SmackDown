@@ -79,7 +79,7 @@ class TimeLoop(owner: Player) extends Action("Time Loop", Wizards, owner) {
 class Sacrifice(owner: Player) extends Action("Sacrifice", Wizards, owner) {
   // Choose one of your minions. Draw cards equal to its power. Destroy that minion.
   override def play(user: Player) {
-    for (m <- user.chooseMyMinionInPlay) {
+    for (m <- user.choose.minion.inPlay.mine) {
       user.draw(m.strength)
       m.destroy(user)
     }
@@ -104,7 +104,7 @@ class Scry(owner: Player) extends Action("Scry", Wizards, owner) {
   // Search your deck for an action and reveal it to all players.
   // Place it in your hand and shuffle your deck.
   override def play(user: Player) {
-    for (a <- user.chooseActionInDrawPile) {
+    for (a <- user.choose.action.inDrawPile) {
       a --> Hand
       user.drawPile = Random.shuffle(user.drawPile)
     }

@@ -87,7 +87,7 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
 class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner) {
   // Place a card from your discard into your hand.
   override def play(user: Player) {
-    for (c <- user.callback.choose(user.discardPile))
+    for (c <- user.choose.card.inDiscardPile)
       c --> Hand
   }
 }
@@ -95,7 +95,7 @@ class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner
 class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, owner) {
   // You may play a minion from your discard as an extra minion.
   override def play(user: Player) {
-    for (m <- user.callback.choose(user.discardPile.minions))
+    for (m <- user.choose.minion.inDiscardPile)
       user.playMinion(m)
   }
 }

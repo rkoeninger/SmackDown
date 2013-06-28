@@ -33,7 +33,7 @@ class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2,
   // power 3 or less from here to their hand.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.winner).map(_.player);
-         m <- p.chooseMinionOnBase(this, 3))
+         m <- p.choose.minion.onBase(this).mine.strengthAtMost(3))
       m --> Hand
   }
 }
@@ -41,7 +41,7 @@ class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2,
 class Collector(owner: Player) extends Minion("Collector", Aliens, 2, owner) {
   // You may return a minion power 3 or less on this base to its owner's hand.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionOnBase(base, 3))
+    for (m <- owner.choose.minion.onBase(base).strengthAtMost(3))
       m --> Hand
   }
 }
@@ -63,7 +63,7 @@ class Invader(owner: Player) extends Minion("Invader", Aliens, 3, owner) {
 class SupremeOverlord(owner: Player) extends Minion("Supreme Overlord", Aliens, 5, owner) {
   // You may return a minion to its owner's hand.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionInPlay)
+    for (m <- owner.choose.minion.inPlay)
       m --> Hand
   }
 }
@@ -71,7 +71,7 @@ class SupremeOverlord(owner: Player) extends Minion("Supreme Overlord", Aliens, 
 class BeamUp(owner: Player) extends Action("Beam Up", Aliens, owner) {
   // Return a minion to its owner's hand.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay)
+    for (m <- user.choose.minion.inPlay)
       m --> Hand
   }
 }
@@ -79,9 +79,9 @@ class BeamUp(owner: Player) extends Action("Beam Up", Aliens, owner) {
 class Invasion(owner: Player) extends Action("Invasion", Aliens, owner) {
   // Move a minion to another base.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay;
+    for (m <- user.choose.minion.inPlay;
          b0 <- m.base;
-         b1 <- user.chooseOtherBaseInPlay(b0))
+         b1 <- user.choose.base.inPlay.otherThan(b0))
       m --> b1
   }
 }
@@ -90,7 +90,7 @@ class Abduction(owner: Player) extends Action("Abduction", Aliens, owner) {
   // Return a minion to its owner's hand.
   // Play an extra minion.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay)
+    for (m <- user.choose.minion.inPlay)
       m --> Hand
     user.playMinion
   }
@@ -99,7 +99,7 @@ class Abduction(owner: Player) extends Action("Abduction", Aliens, owner) {
 class Disintegrator(owner: Player) extends Action("Disintegrator", Aliens, owner) {
   // Place a minion power 3 or less on the bottom of its owner's draw pile.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay(3))
+    for (m <- user.choose.minion.inPlay.strengthAtMost(3))
       m --> DrawBottom
   }
 }
@@ -107,7 +107,7 @@ class Disintegrator(owner: Player) extends Action("Disintegrator", Aliens, owner
 class CropCircles(owner: Player) extends Action("Crop Circles", Aliens, owner) {
   // Choose a base. Return each minion on that base to its owner's hand.
   override def play(user: Player) {
-    for (b <- user.chooseBaseInPlay;
+    for (b <- user.choose.base.inPlay;
          m <- b.minions)
       m --> Hand
   }
@@ -117,8 +117,8 @@ class Probe(owner: Player) extends Action("Probe", Aliens, owner) {
   // Look at an opponent's hand and choose a minion in it.
   // That player discards that minion.
   override def play(user: Player) {
-    for (p <- user.chooseOtherPlayer;
-         m <- user.chooseMinionInHand(p))
+    for (p <- user.choose.player.otherThanMe;
+         m <- user.choose.minion.inHand(p))
       m --> Discard
   }
 }
@@ -129,8 +129,8 @@ class Terraforming(owner: Player) extends Action("Terraforming", Aliens, owner){
   // Shuffle the base deck.
   // You may play an extra minion on the new base.
   override def play(user: Player) {
-    for (b0 <- user.callback.choose(table.baseDrawPile.toSet);
-         b1 <- user.chooseBaseInPlay) {
+    for (b0 <- user.choose.base.inDeck;
+         b1 <- user.choose.base.inPlay) {
       table.baseDrawPile = table.baseDrawPile.filterNot(_ == b0)
       table.basesInPlay -= b1
       table.baseDrawPile = b1 :: table.baseDrawPile

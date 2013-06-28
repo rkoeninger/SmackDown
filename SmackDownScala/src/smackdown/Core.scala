@@ -56,7 +56,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     draw(2)
     
     while (hand.size > 10)
-      for (c <- chooseCardInHand) c --> Discard
+      for (c <- choose.card.inHand) c --> Discard
   }
   
   def draw() {
@@ -129,8 +129,8 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
   
   def playMinion(m: Minion) {
-    for (m <- chooseMinionInHand;
-         b <- chooseBaseInPlay) {
+    for (m <- choose.minion.inHand;
+         b <- choose.base.inPlay) {
       m.play(b)
       b.cards += m
     }
@@ -146,25 +146,34 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     a.play(this)
   }
   
-  def chooseBaseInPlay = callback.choose(table.basesInPlay)
-  def chooseOtherBaseInPlay(not: Base) = callback.choose(table.basesInPlay.filterNot(_ == not))
-  def chooseCardInHand = callback.choose(hand)
-  def chooseMinionInHand = callback.choose(hand.minions())
-  def chooseMinionInHand(maxStrength: Int) = callback.choose(hand.minions().maxStrength(maxStrength))
-  def chooseMinionInHand(player: Player) = callback.choose(player.hand)
-  def chooseMinionInPlay = callback.choose(table.minions)
-  def chooseMinionInPlay(maxStrength: Int) = callback.choose(table.minions.maxStrength(maxStrength))
-  def chooseMyMinionInPlay = callback.choose(table.minions.ownedBy(this))
-  def chooseTheirMinionInPlay = callback.choose(table.minions.filter(_.owner != this))
-  def chooseMinionOnBase(base: Base) = callback.choose(base.minions)
-  def chooseMinionOnBase(base: Base, maxStrength: Int) = callback.choose(base.minions.maxStrength(maxStrength))
-  def chooseMyMinionOnBase(base: Base) = callback.choose(base.minions.ownedBy(this))
-  def chooseActionInHand = callback.choose(hand.actions())
-  def chooseActionInDrawPile = callback.choose(drawPile.toSet.ofType[Action])
-  def chooseActionInPlay = callback.choose(table.actions)
-  def choosePlayer = callback.choose(table.players.toSet)
-  def chooseOtherPlayer = callback.choose(otherPlayers.toSet)
-  def chooseFaction = callback.choose(table.factions)
+  def choose = new {
+    def player = new PlayerChoice(Player.this, table.players.toSet)
+    def faction = new Choice[Faction](Player.this, table.factions)
+    def card = new {
+      def inHand = new Choice[DeckCard](Player.this, Player.this.hand)
+      def inDiscardPile = new Choice[DeckCard](Player.this, Player.this.discardPile)
+    }
+    def base = new {
+      def inPlay = new BaseChoice(Player.this, table.basesInPlay)
+      def inDeck = new BaseChoice(Player.this, table.baseDrawPile.toSet)
+    }
+    def action = new {
+      def inHand = new ActionChoice(Player.this, Player.this.hand.actions)
+      def inPlay = new ActionChoice(Player.this, table.actions)
+      def inDrawPile = new ActionChoice(Player.this, Player.this.drawPile.actions.toSet)
+      def inDiscardPile = new ActionChoice(Player.this, Player.this.discardPile.actions)
+      def onBase(base: Base) = new ActionChoice(Player.this, base.actions)
+      def onMinion(minion: Minion) = new ActionChoice(Player.this, minion.actions)
+    }
+    def minion = new {
+      def inHand = new MinionChoice(Player.this, Player.this.hand.minions)
+      def inHand(player: Player) = new MinionChoice(Player.this, player.hand.minions)
+      def inDiscardPile = new MinionChoice(Player.this, Player.this.discardPile.minions)
+      def inPlay = new MinionChoice(Player.this, table.minions)
+      def onBase(base: Base) = new MinionChoice(Player.this, base.minions)
+    }
+  }
+  
   def chooseYesNo = callback.confirm
 }
 
@@ -387,8 +396,8 @@ class PlayMinion(maxStrength: Int) extends Move {
   def this() = this(Int.MaxValue)
   def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion] && m.as[Minion].strength <= maxStrength)
   def play(user: Player) {
-    for (m <- user.chooseMinionInHand(maxStrength);
-         b <- user.chooseBaseInPlay) {
+    for (m <- user.choose.minion.inHand.strengthAtMost(maxStrength);
+         b <- user.choose.base.inPlay) {
       m.play(b)
       b.cards += m
     }
@@ -398,7 +407,7 @@ class PlayMinion(maxStrength: Int) extends Move {
 class PlayMinionOnBase(base: Base) extends Move {
   def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion])
   def play (user: Player) {
-    for (m <- user.chooseMinionInHand) {
+    for (m <- user.choose.minion.inHand) {
       m.play(base)
       base.cards += m
     }
@@ -408,7 +417,7 @@ class PlayMinionOnBase(base: Base) extends Move {
 class PlayAction extends Move {
   def isPlayable(user: Player) = user.hand.exists(_.is[Action])
   def play(user: Player) {
-    for (a <- user.chooseActionInHand)
+    for (a <- user.choose.action.inHand)
       a.play(user)
   }
 }

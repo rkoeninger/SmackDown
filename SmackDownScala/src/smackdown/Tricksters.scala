@@ -52,7 +52,7 @@ class Gnome(owner: Player) extends Minion("Gnome", Tricksters, 3, owner) {
   // You may destroy a minion on this base
   // with power less than the number of minions you have here.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionOnBase(base, base.minions.ownedBy(owner).size - 1))
+    for (m <- owner.choose.minion.onBase(base).strengthAtMost(base.minions.ownedBy(owner).size - 1))
       m.destroy(owner)
   }
 }
@@ -110,7 +110,7 @@ class EnshroudingMist(owner: Player) extends Action("Enshrouding Mist", Trickste
 class Disenchant(owner: Player) extends Action("Disenchant", Tricksters, owner) {
   // Destroy an action attached to a minion or a base.
   override def play(user: Player) {
-    for (a <- user.chooseActionInPlay)
+    for (a <- user.choose.action.inPlay)
       a.destroy(this)
   }
 }

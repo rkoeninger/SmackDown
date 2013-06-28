@@ -51,7 +51,7 @@ class Shinobi(owner: Player) extends Minion("Shinobi", Ninjas, 3, owner) {
 class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, owner) {
   // You may destroy a minion power 3 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionOnBase(base, 3))
+    for (m <- owner.choose.minion.onBase(base).strengthAtMost(3))
       m.destroy(owner)
   }
 }
@@ -59,7 +59,7 @@ class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, o
 class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner) {
   // You may destory a minion on this base.
   override def play(base: Base) {
-    for (m <- owner.chooseMinionOnBase(base))
+    for (m <- owner.choose.minion.onBase(base))
       m.destroy(owner)
   }
 }
@@ -67,7 +67,7 @@ class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner
 class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
   // Destroy a minion of power 3 or less.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay(3))
+    for (m <- user.choose.minion.inPlay.strengthAtMost(3))
       m.destroy(user)
   }
 }
@@ -75,9 +75,9 @@ class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
 class WayOfDeception(owner: Player) extends Action("Way of Deception", Ninjas, owner) {
   // Move one of your minions to a different base.
   override def play(user: Player) {
-    for (m <- user.chooseMyMinionInPlay;
+    for (m <- user.choose.minion.inPlay.mine;
          b0 <- m.base;
-         b1 <- user.chooseOtherBaseInPlay(b0))
+         b1 <- user.choose.base.inPlay.otherThan(b0))
       m --> b1
   }
 }
@@ -92,7 +92,7 @@ class HiddenNinja(owner: Player) extends Action("Hidden Ninja", Ninjas, owner) {
 class Assassination(owner: Player) extends Action("Assassination", Ninjas, owner) {
   // Play on a minion. Ongoing: Destroy this minion at end of turn.
   override def play(user: Player) {
-    for (m <- user.chooseMinionInPlay)
+    for (m <- user.choose.minion.inPlay)
       user.onTurnEnd { m.destroy(user) }
   }
 }
