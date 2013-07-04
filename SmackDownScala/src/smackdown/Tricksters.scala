@@ -52,7 +52,7 @@ class Gnome(owner: Player) extends Minion("Gnome", Tricksters, 3, owner) {
   // You may destroy a minion on this base
   // with power less than the number of minions you have here.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(base.minions.ownedBy(owner).size - 1))
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(base.minions.ownedBy(owner).size - 1))
       m.destroy(owner)
   }
 }
@@ -67,7 +67,7 @@ class Leprechaun(owner: Player) extends Minion("Leprechaun", Tricksters, 5, owne
   // with power less than this minion's power,
   // destroy it (its ability is resolved first).
   override def minionPlayed(minion: Minion) {
-    if (isOnTable && minion.base == this.base && minion.strength < this.strength)
+    if (isOnTable && minion.base == this.base && minion.power < this.power)
       minion.destroy(owner)
   }
   // TODO: what happens if Leprechaun has Upgrade (so he's a 7) and NinjaMaster is played, which kills the Lep?

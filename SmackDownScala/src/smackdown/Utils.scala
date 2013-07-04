@@ -1,78 +1,68 @@
 package smackdown
 
+import scala.language.higherKinds
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls
 import scala.reflect.Manifest
 
-object Deck {
-  def apply(cs: (Int, () => DeckCard)*) = cs.flatMap(x => Utils.int2Awesome(x._1).times(x._2())).toSet
-  def apply(owner: Player, cs: (Player => Set[DeckCard])*) = cs.flatMap(x => x(owner)).toSet
-}
-
 object Utils {
-  implicit def byNameToNoArg[A](a: => A) = () => a
-  implicit def anyAsOption(whatever: Any) = new {
-    def optionCast[U](implicit m: Manifest[U]): Option[U] = if (simpleIsAs(whatever).is[U]) Some(whatever.as[U]) else None
+  implicit def castWhatever(whatever: Any) = new {
+    def is[T](implicit m: Manifest[T]) = m.runtimeClass.isInstance(whatever)
+    def as[T] = whatever.asInstanceOf[T]
+    def optionCast[U](implicit m: Manifest[U]): Option[U] = if (is[U]) Some(as[U]) else None
   }
-  implicit def simpleIsAs(any: Any) = new {
-    /** Equivalent to Any.isInstanceOf[T] */
-    def is[T](implicit m: Manifest[T]) = m.runtimeClass.isInstance(any)
-    /** Equivalent to Any.asInstanceOf[T] */
-    def as[T] = any.asInstanceOf[T]
-  }
+  
   implicit def list2EnhancedList[T](list: List[T]) = new {
-    /** Filters and casts elements of list by the given element sub-type */
-    def ofType[U](implicit m: Manifest[U]) = list.filter(_.is[U]).map(_.as[U])
-    /** Filters elements of list by the given element sub-type */
-    def filterType[U](implicit m: Manifest[U]) = list.filter(_.is[U])
-    /** Casts elements of list by the given element sub-type */
-    def cast[U](implicit m: Manifest[U]) = list.map(_.as[U])
-    /** Returns new list missing the element at the given index */
-    def dropIndex[T](n: Int) = 
+    def dropIndex[T](n: Int) =
       if (n < 0 || n >= list.length) list
       else {
         val (a, b) = list splitAt n
         a ::: (b drop 1)
       }
   }
-  implicit def set2EnhancedSet[T](set: Set[T]) = new {
-    /** Filters and casts elements of set by the given element sub-type */
-    def ofType[U](implicit m: Manifest[U]) = set.filter(_.is[U]).map(_.as[U])
-    /** Filters elements of set by the given element sub-type */
-    def filterType[U](implicit m: Manifest[U]) = set.filter(_.is[U])
-    /** Casts elements of list by the given element sub-type */
-    def cast[U](implicit m: Manifest[U]) = set.map(_.as[U])
-    def any = set.size > 0
-  }
+  
   implicit def int2Awesome(i: Int) = new {
-    /** Ruby-style n.times {} method */
-    def times[T](todo: => T): List[T] =
-      if (i <= 0) List[T]()
-      else (1 to i map(_ => todo)).toList
-    
-    def of[A <: DeckCard](implicit m: Manifest[A]): Player => Set[DeckCard] =
-      (owner: Player) => {
-        if (i <= 0)
-          Set[DeckCard]()
-        else
-          (1 to i).map(_ =>
-            m.runtimeClass.getConstructor(classOf[Player]).newInstance(owner).asInstanceOf[DeckCard]
-          ).toSet
-      }
+    def times[T](todo: => T) = if (i <= 0) List[T]() else (1 to i map(_ => todo)).toList
+    def of[A <: DeckCard](implicit m: Manifest[A]) =
+      (owner: Player) =>
+        if (i <= 0) Set[DeckCard]()
+        else {
+          val ctor = m.runtimeClass.getConstructor(classOf[Player]);
+          (1 to i).map(_ => ctor.newInstance(owner).as[DeckCard]).toSet
+        }
   }
-  implicit def minionSetEnhance(ms: Set[Minion]) = new {
-    def destructable() = ms.filter(_.destructable)
-    def ownedBy(p: Player) = ms.filter(_.owner == p)
-    def notOwnedBy(p: Player) = ms.filter(_.owner != p)
-    def maxStrength(max: Int) = ms.filter(_.strength <= max)
-    def ofFaction(f: Faction) = ms.filter(_.faction == f)
+  
+  implicit def deckCardSetEnhance(cards: Set[DeckCard]) = new {
+    def minions() = cards.filter(_.is[Minion]).map(_.as[Minion])
+    def actions() = cards.filter(_.is[Action]).map(_.as[Action])
   }
-  implicit def deckCardSetEnhance(dcs: Set[DeckCard]) = new {
-    def minions() = dcs.ofType[Minion]
-    def actions() = dcs.ofType[Action]
+  
+  implicit def deckCardListEnhance(cards: List[DeckCard]) = new {
+    def minions() = cards.filter(_.is[Minion]).map(_.as[Minion])
+    def actions() = cards.filter(_.is[Action]).map(_.as[Action])
   }
-  implicit def deckCardListEnhance(dcl: List[DeckCard]) = new {
-    def minions() = dcl.ofType[Minion]
-    def actions() = dcl.ofType[Action]
+  
+  implicit def choiceOverPlayer(c: Choice[Player]) = new {
+    def otherThanMe = c.filter(_ != c.me)
   }
+  
+  implicit def choiceOverMinion(c: Choice[Minion]) = new {
+    def mine = c.filter(_.owner == c.me)
+    def notMine = c.filter(_.owner != c.me)
+  }
+  
+  implicit def monadOverMinion[F](m: Filterable[Minion, F]) = new {
+    def powerAtMost(power: Int) = m.filter(_.power <= power)
+    def destructable() = m.filter(_.destructable)
+    def ownedBy(owner: Player) = m.filter(_.owner == owner)
+    def notOwnedBy(owner: Player) = m.filter(_.owner != owner)
+    def ofFaction(faction: Faction) = m.filter(_.faction == faction)
+  }
+  
+  implicit def monadOverBase[F](m: Filterable[Base, F]) = new {
+    def otherThan(base: Base) = m.filter(_ != base)
+    def withMinion(predicate: Minion => Boolean) = m.filter(_.minions.exists(predicate))
+  }
+  
+  type Filterable[T, F] = { def filter(f: T => Boolean): F }
 }

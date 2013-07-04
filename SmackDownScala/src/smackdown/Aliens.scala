@@ -33,7 +33,7 @@ class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2,
   // power 3 or less from here to their hand.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.winner).map(_.player);
-         m <- p.choose.minion.onBase(this).mine.strengthAtMost(3))
+         m <- p.choose.minion.onBase(this).mine.powerAtMost(3))
       m --> Hand
   }
 }
@@ -41,7 +41,7 @@ class Mothership(table: Table) extends Base("The Mothership", Aliens, 20, (4, 2,
 class Collector(owner: Player) extends Minion("Collector", Aliens, 2, owner) {
   // You may return a minion power 3 or less on this base to its owner's hand.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(3))
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(3))
       m --> Hand
   }
 }
@@ -99,7 +99,7 @@ class Abduction(owner: Player) extends Action("Abduction", Aliens, owner) {
 class Disintegrator(owner: Player) extends Action("Disintegrator", Aliens, owner) {
   // Place a minion power 3 or less on the bottom of its owner's draw pile.
   override def play(user: Player) {
-    for (m <- user.choose.minion.inPlay.strengthAtMost(3))
+    for (m <- user.choose.minion.inPlay.powerAtMost(3))
       m --> DrawBottom
   }
 }

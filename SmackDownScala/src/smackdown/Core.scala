@@ -7,12 +7,13 @@ import Utils._
 
 class Table {
   var players = List[Player]()
-  var currentPlayer = null // FIXME: don't use null!
+  var turn = 0
+  def currentPlayer = players(turn)
   var baseDrawPile = List[Base]()
   var basesInPlay = Set[Base]()
   var baseDiscardPile = Set[Base]()
   def minions() = basesInPlay.flatMap(_.minions)
-  def actions() = basesInPlay.flatMap(_.actions) ++ minions().flatMap(_.actions())
+  def actions() = basesInPlay.flatMap(_.actions) ++ minions.flatMap(_.actions)
   def factions() = Set[Faction]()
 }
 
@@ -105,7 +106,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
   
   def randomDiscard(count: Int) {
-    (1 to count).foreach(x => randomDiscard)
+    1 to count foreach { x => randomDiscard }
   }
   
   def otherPlayers() = table.players.filterNot(_ == this)
@@ -116,8 +117,8 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
       move.play(this)
   }
   
-  def playMinion(maxStrength: Int) {
-    val move = new PlayMinion(maxStrength)
+  def playMinion(maxPower: Int) {
+    val move = new PlayMinion(maxPower)
     if (move.isPlayable(this))
       move.play(this)
   }
@@ -147,30 +148,30 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   }
   
   def choose = new {
-    def player = new PlayerChoice(Player.this, table.players.toSet)
+    def player = new Choice[Player](Player.this, table.players.toSet)
     def faction = new Choice[Faction](Player.this, table.factions)
     def card = new {
       def inHand = new Choice[DeckCard](Player.this, Player.this.hand)
       def inDiscardPile = new Choice[DeckCard](Player.this, Player.this.discardPile)
     }
     def base = new {
-      def inPlay = new BaseChoice(Player.this, table.basesInPlay)
-      def inDeck = new BaseChoice(Player.this, table.baseDrawPile.toSet)
+      def inPlay = new Choice[Base](Player.this, table.basesInPlay)
+      def inDeck = new Choice[Base](Player.this, table.baseDrawPile.toSet)
     }
     def action = new {
-      def inHand = new ActionChoice(Player.this, Player.this.hand.actions)
-      def inPlay = new ActionChoice(Player.this, table.actions)
-      def inDrawPile = new ActionChoice(Player.this, Player.this.drawPile.actions.toSet)
-      def inDiscardPile = new ActionChoice(Player.this, Player.this.discardPile.actions)
-      def onBase(base: Base) = new ActionChoice(Player.this, base.actions)
-      def onMinion(minion: Minion) = new ActionChoice(Player.this, minion.actions)
+      def inHand = new Choice[Action](Player.this, Player.this.hand.actions)
+      def inPlay = new Choice[Action](Player.this, table.actions)
+      def inDrawPile = new Choice[Action](Player.this, Player.this.drawPile.actions.toSet)
+      def inDiscardPile = new Choice[Action](Player.this, Player.this.discardPile.actions)
+      def onBase(base: Base) = new Choice[Action](Player.this, base.actions)
+      def onMinion(minion: Minion) = new Choice[Action](Player.this, minion.actions)
     }
     def minion = new {
-      def inHand = new MinionChoice(Player.this, Player.this.hand.minions)
-      def inHand(player: Player) = new MinionChoice(Player.this, player.hand.minions)
-      def inDiscardPile = new MinionChoice(Player.this, Player.this.discardPile.minions)
-      def inPlay = new MinionChoice(Player.this, table.minions)
-      def onBase(base: Base) = new MinionChoice(Player.this, base.minions)
+      def inHand = new Choice[Minion](Player.this, Player.this.hand.minions)
+      def inHand(player: Player) = new Choice[Minion](Player.this, player.hand.minions)
+      def inDiscardPile = new Choice[Minion](Player.this, Player.this.discardPile.minions)
+      def inPlay = new Choice[Minion](Player.this, table.minions)
+      def onBase(base: Base) = new Choice[Minion](Player.this, base.minions)
     }
   }
   
@@ -187,9 +188,19 @@ trait Callback {
   def pointsGained(player: Player, oldPoints: Int, newPoints: Int) {}
 }
 
+class Choice[T](val me: Player, var options: Set[T]) {
+  private def decide = me.callback.choose(options)
+  def foreach[U](f: T => U) { decide foreach f }
+  def filter(f: T => Boolean): Choice[T] = new Choice[T](me, options filter f)
+}
+
 abstract class Faction(val name: String) {
   def bases(table: Table): Set[Base]
   def cards(owner: Player): Set[DeckCard]
+}
+
+object Deck {
+  def apply(owner: Player, cs: (Player => Set[DeckCard])*) = cs.flatMap(x => x(owner)).toSet
 }
 
 abstract class Card(val name: String, val faction: Faction)
@@ -205,13 +216,13 @@ class Base(name: String, faction: Faction, startingBreakPoint: Int, val scoreVal
 extends Card(name, faction) with Destination {
   
   var cards = Set[DeckCard]()
-  def minions() = cards.ofType[Minion]
-  def actions() = cards.ofType[Action]
+  def minions() = cards.minions
+  def actions() = cards.actions
   var minionBonuses = Set[Bonus]()
   var bonuses = Set[BreakPointBonus]()
   def breakPoint() = math.max(0, startingBreakPoint + bonuses.map(_.getBonus(this)).sum)
   
-  def totalStrength() = minions.map(_.strength).sum
+  def totalPower() = minions.map(_.power).sum
   
   def isInPlay() = table.basesInPlay.contains(this)
   
@@ -228,27 +239,23 @@ extends Card(name, faction) with Destination {
    * Returns a mapping of players to (scoreReward, ranking) where the score reward is one of the
    * three values in scoreValues and the ranking is 1 for winner, 2 for runner-up, etc.
    * Rank values are 1, 2, 3... regardless of ties. If there is a tie for 1st and a third player
-   * with less strength, the two players with greater strength will get scoreValues[0] and rank 1,
+   * with less power, the two players with greater power will get scoreValues[0] and rank 1,
    * the weaker player will get scoreValues[2] and rank 2.
    */
   def score() = {
-    val playerStrengths = minions.groupBy(_.owner).map(x => (x._1, x._2.map(_.strength).sum))
-    val sortedStrengths = playerStrengths.values.toList.distinct.sorted.reverse
-    var rewardCount = 0
-    var rewardRank = 1
+    val playerPowers = minions.groupBy(_.owner).map(x => (x._1, x._2.map(_.power).sum))
+    val sortedPowers = playerPowers.values.toList.distinct.sorted.reverse
     
-    val ranks = sortedStrengths.map(strength =>
-      if (rewardCount < 3) Some {
+    def assignRewards(remainingPowerLevels: List[Int], rewardRank: Int, rewardCount: Int): Set[Rank] =
+      if (rewardCount >= 3 || remainingPowerLevels.isEmpty) Set[Rank]()
+      else {
+        val power = remainingPowerLevels.head
         val reward = scoreValues.productElement(rewardCount).as[Int]
-        val rewardGroup = playerStrengths.filter(_._2 == strength).map(x => new Rank(x._1, reward, rewardRank)).toSet
-        rewardCount += rewardGroup.size
-        rewardRank += 1
-        rewardGroup
+        val rewardGroup = playerPowers.filter(_._2 == power).map(x => new Rank(x._1, reward, rewardRank)).toSet
+        rewardGroup ++ assignRewards(remainingPowerLevels.tail, rewardRank + 1, rewardCount + rewardGroup.size)
       }
-      else None
-    )
     
-    ranks.flatten.foldLeft(Set[Rank]())(_ ++ _)
+    assignRewards(sortedPowers, 1, 0)
   }
 }
 
@@ -306,13 +313,13 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
   def endTurn() {}
 }
 
-class Minion(name: String, faction: Faction, startingStrength: Int, owner: Player)
+class Minion(name: String, faction: Faction, power0: Int, owner: Player)
 extends DeckCard(name, faction, owner) with Destination {
   
   var bonuses = Set[Bonus]()
   var actions = Set[Action]()
   def isOnTable() = base.isDefined
-  def strength() = startingStrength
+  def power() = power0
     + bonuses.map(_.getBonus(this)).sum
     + (if (isOnBase) owner.bonuses.map(_.getBonus(this)).sum else 0)
     + base.map(_.minionBonuses.map(_.getBonus(this)).sum).getOrElse(0)
@@ -392,11 +399,11 @@ trait Move {
   def play(user: Player)
 }
 
-class PlayMinion(maxStrength: Int) extends Move {
+class PlayMinion(maxPower: Int) extends Move {
   def this() = this(Int.MaxValue)
-  def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion] && m.as[Minion].strength <= maxStrength)
+  def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion] && m.as[Minion].power <= maxPower)
   def play(user: Player) {
-    for (m <- user.choose.minion.inHand.strengthAtMost(maxStrength);
+    for (m <- user.choose.minion.inHand.powerAtMost(maxPower);
          b <- user.choose.base.inPlay) {
       m.play(b)
       b.cards += m

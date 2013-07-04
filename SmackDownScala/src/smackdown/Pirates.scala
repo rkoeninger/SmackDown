@@ -24,7 +24,7 @@ object Pirates extends Faction("Pirates") {
 class Tortuga(table: Table) extends Base("Tortuga", Pirates, 21, (4, 3, 2), table) {
   // The runner-up may move one of his or her minions to the base that replaces this base.
   override def afterScore(newBase: Base) {
-    for (p <- score.filter(_.runnerUp).map(_.player).filter(p => minions.ownedBy(p).any);
+    for (p <- score.filter(_.runnerUp).map(_.player).filter(p => minions.ownedBy(p).size > 0);
          m <- p.choose.minion.onBase(this).mine)
       m --> newBase
   }
@@ -54,7 +54,7 @@ class FirstMate(owner: Player) extends Minion("First Mate", Pirates, 2, owner) {
 class SaucyWench(owner: Player) extends Minion("Saucy Wench", Pirates, 3, owner) {
   // You may destory a minion power 2 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(2))
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(2))
       m.destroy(owner)
   }
 }
@@ -82,7 +82,7 @@ class Broadside(owner: Player) extends Action("Broadside", Pirates, owner) {
   override def play(user: Player) {
     for (b <- user.choose.base.inPlay.withMinion(_.owner == user);
          p <- user.choose.player;
-         m <- b.minions.ownedBy(p).maxStrength(2))
+         m <- b.minions.ownedBy(p).powerAtMost(2))
       m.destroy(user)
   }
 }
@@ -91,7 +91,7 @@ class Cannon(owner: Player) extends Action("Cannon", Pirates, owner) {
   // Destroy up to two minions of power 2 or less.
   override def play(user: Player) {
     2 times {
-      for (m <- user.choose.minion.inPlay.strengthAtMost(2))
+      for (m <- user.choose.minion.inPlay.powerAtMost(2))
         m.destroy(user)
     }
   }
@@ -131,9 +131,9 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
   override def play(user: Player) {
     for (m <- user.choose.minion.inPlay.mine;
          b <- m.base) {
-      val strength = m.strength
+      val power = m.power
       m.destroy(user)
-      b.minions.destructable.maxStrength(strength).foreach(_.destroy(user))
+      b.minions.destructable.powerAtMost(power).foreach(_.destroy(user))
     }
   }
 }
@@ -141,10 +141,10 @@ class Powderkeg(owner: Player) extends Action("Powderkeg", Pirates, owner) {
 class SeaDogs(owner: Player) extends Action("Sea Dogs", Pirates, owner) {
   // Name a faction. Move all minions of that faction from one base to another.
   override def play(user: Player) {
-    for (f <- user.choose.faction;
+    for (f  <- user.choose.faction;
          b0 <- user.choose.base.inPlay;
          b1 <- user.choose.base.inPlay.otherThan(b0);
-         m <- b0.minions.ofFaction(f))
+         m  <- b0.minions.ofFaction(f))
       m --> b1
   }
 }

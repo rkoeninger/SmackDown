@@ -67,7 +67,7 @@ class PlayerTest extends FunSpec {
       val callback = new Callback() {
         // Always discard weakest card first
         override def choose[T](cards: Set[T]): Option[T] =
-          Some(cards.minBy(_.as[Minion].strength))
+          Some(cards.minBy(_.as[Minion].power))
       }
       val player = new Player("Bob", List(TestFaction), table, callback)
       val card1 = new TestMinion(player, 1)

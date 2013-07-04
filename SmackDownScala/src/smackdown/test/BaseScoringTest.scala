@@ -13,7 +13,7 @@ class BaseScoringTest extends FunSpec {
       testBase(List((player1, 3)),
           Set((player1, 1, 1)))
     }
-    it ("should reward 1st place points to the player with greater total strength when there are only 2 players") {
+    it ("should reward 1st place points to the player with greater total power when there are only 2 players") {
       testBase(List((player1, 3), (player2, 4)),
           Set((player1, 2, 2), (player2, 1, 1)))
     }

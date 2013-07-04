@@ -25,10 +25,10 @@ class CentralBrain(table: Table) extends Base("The Central Brain", Robots, 19, (
 }
 
 class Factory4361337(table: Table) extends Base("Factory 234-1337", Robots, 25, (2, 2, 0), table) {
-  // When this base scores, each player gets +1 point for every 5 minion strength.
+  // When this base scores, each player gets +1 point for every 5 minion power.
   override def onScore() {
     for (p <- minions.map(_.owner))
-      p addPoints (minions.ownedBy(p).map(_.strength).sum / 5)
+      p addPoints (minions.ownedBy(p).map(_.power).sum / 5)
   }
 }
 
@@ -39,7 +39,7 @@ abstract class Microbot(name: String, owner: Player) extends Minion("Microbot " 
 
 class MicrobotAlpha(owner: Player) extends Microbot("Alpha", owner) {
   // Gains +1 for each other Microbot in play. All of your minions are considered microbots.
-  override def strength() = super.strength + (owner.minionsInPlay - this).count(isMicrobot(_))
+  override def power() = super.power + (owner.minionsInPlay - this).count(isMicrobot(_))
 }
 
 class MicrobotArchive(owner: Player) extends Microbot("Archive", owner) {
@@ -66,7 +66,7 @@ class MicrobotFixer(owner: Player) extends Microbot("Fixer", owner) {
 class MicrobotGuard(owner: Player) extends Microbot("Guard", owner) {
   // Destroy a minion on this base with power less than the number of minions you have on this base.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(base.minions.ownedBy(owner).size - 1))
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(base.minions.ownedBy(owner).size - 1))
       m.destroy(owner)
   }
 }
@@ -77,7 +77,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Reclaimer", owner) {
   // You may reshuffle any number of microbots from your discard into your deck.
   override def play(base: Base) {
     owner.playMinion // TODO: only IF you haven't already played a minion this turn
-    val selected = owner.callback.chooseAny(owner.discardPile.ofType[Minion].filter(isMicrobot(_)))
+    val selected = owner.callback.chooseAny(owner.discardPile.minions.filter(isMicrobot(_)))
     if (selected.size > 0) {
       for (m <- selected)
         m --> DrawTop
@@ -89,7 +89,7 @@ class MicrobotReclaimer(owner: Player) extends Microbot("Reclaimer", owner) {
 class Zapbot(owner: Player) extends Minion("Zapbot", Robots, 2, owner) {
   // You may play an extra minion power 2 or less.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.inHand.strengthAtMost(2))
+    for (m <- owner.choose.minion.inHand.powerAtMost(2))
       owner.playMinion(m) 
   }
 }

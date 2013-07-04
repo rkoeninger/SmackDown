@@ -12,4 +12,4 @@ object TestFaction extends Faction("TestFaction") {
 
 class TestBase(table: Table) extends Base("TestBase", TestFaction, 1, (1, 2, 3), table) // 1 for 1st place points, 2 for 2nd, etc
 
-class TestMinion(owner: Player, strength: Int) extends Minion("TestMinion", TestFaction, strength, owner)
+class TestMinion(owner: Player, power: Int) extends Minion("TestMinion", TestFaction, power, owner)

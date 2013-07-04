@@ -26,8 +26,8 @@ class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 
   // on the bottom of its owner's draw pile.
   override def afterScore(newBase: Base) {
     for (p <- minions.groupBy(_.owner).map(_._1)) {
-      val highestStrength = minions.ownedBy(p).map(_.strength).max
-      for (m <- minions.ownedBy(p).filter(_.strength == highestStrength))
+      val highestPower = minions.ownedBy(p).map(_.power).max
+      for (m <- minions.ownedBy(p).filter(_.power == highestPower))
         m --> DrawBottom // TODO: What if there's a tie for highest-powered?
     }
   }
@@ -51,7 +51,7 @@ class Shinobi(owner: Player) extends Minion("Shinobi", Ninjas, 3, owner) {
 class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, owner) {
   // You may destroy a minion power 3 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(3))
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(3))
       m.destroy(owner)
   }
 }
@@ -67,7 +67,7 @@ class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner
 class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
   // Destroy a minion of power 3 or less.
   override def play(user: Player) {
-    for (m <- user.choose.minion.inPlay.strengthAtMost(3))
+    for (m <- user.choose.minion.inPlay.powerAtMost(3))
       m.destroy(user)
   }
 }

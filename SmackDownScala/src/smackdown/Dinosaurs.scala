@@ -28,19 +28,18 @@ class TarPits(table: Table) extends Base("Tar Pits", Dinosaurs, 16, (4, 2, 1), t
 
 class WarRaptor(owner: Player) extends Minion("War Raptor", Dinosaurs, 2, owner) {
   // Ongoing: Gains +1 for each War Raptor on this base (including this one).
-  override def strength() = super.strength + base.map(_.minions.count(_.is[WarRaptor])).getOrElse(0)
+  override def power() = super.power + base.map(_.minions.count(_.is[WarRaptor])).getOrElse(0)
 }
 
 class ArmorStego(owner: Player) extends Minion("Armor Stego", Dinosaurs, 3, owner) {
   // Has +2 power on other player's turns.
-  override def strength() = super.strength + (if (owner != table.currentPlayer) 2 else 0)
+  override def power() = super.power + (if (owner != table.currentPlayer) 2 else 0)
 }
 
 class Laseratops(owner: Player) extends Minion("Laseratops", Dinosaurs, 4, owner) {
   // Destroy a minion power 2 or less on this base.
   override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).strengthAtMost(2))
-      m.destroy(owner)
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(2)) m.destroy(owner)
   }
 }
 
@@ -64,7 +63,7 @@ class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosa
   override def play(user: Player) {
     for (m0 <- user.choose.minion.inPlay.mine;
          b <- m0.base;
-         m1 <- user.choose.minion.onBase(b).strengthAtMost(m0.strength - 1))
+         m1 <- user.choose.minion.onBase(b).powerAtMost(m0.power - 1))
       m1.destroy(user)
   }
 }
@@ -85,8 +84,8 @@ class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
 class SurvivalOfTheFittest(owner: Player) extends Action("Survival of the Fittest", Dinosaurs, owner) {
   // Destroy the lowest-power minion (you choose in case of a tie) on each base with a higher-power minion.
   override def play(user: Player) {
-    for (b <- table.basesInPlay.filter(_.minions.map(_.strength).size > 1);
-         m <- user.callback.choose(b.minions.filter(_.strength < b.minions.map(_.strength).max)))
+    for (b <- table.basesInPlay.filter(_.minions.map(_.power).size > 1);
+         m <- user.callback.choose(b.minions.filter(_.power < b.minions.map(_.power).max)))
       m.destroy(user)
   }
 }
@@ -96,7 +95,7 @@ class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {
   override def play(user: Player) {
     for (b <- user.choose.base.inPlay;
          m <- user.choose.minion.onBase(b).mine)
-      BreakPointBonus.untilTurnEnd(user, b, _ => - m.strength)
+      BreakPointBonus.untilTurnEnd(user, b, _ => - m.power)
   }
 }
 

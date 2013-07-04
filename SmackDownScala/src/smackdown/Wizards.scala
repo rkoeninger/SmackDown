@@ -80,7 +80,7 @@ class Sacrifice(owner: Player) extends Action("Sacrifice", Wizards, owner) {
   // Choose one of your minions. Draw cards equal to its power. Destroy that minion.
   override def play(user: Player) {
     for (m <- user.choose.minion.inPlay.mine) {
-      user.draw(m.strength)
+      user.draw(m.power)
       m.destroy(user)
     }
   }
@@ -122,7 +122,7 @@ class MassEnchantment(owner: Player) extends Action("Mass Enchantment", Wizards,
   // Play one revealed action as an extra action.
   // Return unused to the top of their decks.
   override def play(user: Player) {
-    for (a <- user.callback.choose(user.otherPlayers.map(_.reveal).ofType[Action].toSet)) {
+    for (a <- user.callback.choose(user.otherPlayers.flatMap(_.reveal).actions.toSet)) {
       a.play(user)
       // TODO: Move to discard?
     }

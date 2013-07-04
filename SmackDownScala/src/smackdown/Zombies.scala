@@ -76,7 +76,7 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
   // Select a minion from your deck, take all copies of that minion and put them in your discard.
   // Shuffle your deck.
   override def play(user: Player) {
-    for (m0 <- user.callback.choose(user.drawPile.ofType[Minion].toSet);
+    for (m0 <- user.callback.choose(user.drawPile.minions.toSet);
          m <- user.drawPile.filter(_.getClass == m0.getClass)) {
       m --> Discard
       user.shuffle
@@ -103,7 +103,7 @@ class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, 
 class NotEnoughBullets(owner: Player) extends Action("Not Enough Bullets", Zombies, owner) {
   // Select a minion from your discard, take all copies of that minion and put them into your hand.
   override def play(user: Player) {
-    for (m0 <- user.callback.choose(user.discardPile.ofType[Minion].toSet);
+    for (m0 <- user.callback.choose(user.discardPile.minions.toSet);
          m <- user.discardPile.filter(_.getClass == m0.getClass))
       m --> Hand
   }
