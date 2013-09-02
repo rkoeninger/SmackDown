@@ -39,11 +39,13 @@ class Spirit(owner: Player) extends Minion("Spirit", Ghosts, 3, owner) {
 }
 
 class Haunting(owner: Player) extends Minion("Haunting", Ghosts, 3, owner) {
-	//Ongoing: If you have two or fewer cards in your hand, this minion has +3 power and is not affected by other players' cards.
+	//Ongoing: If you have two or fewer cards in your hand,
+    //this minion has +3 power and is not affected by other players' cards.
 }
 
 class Specter(owner: Player) extends Minion("Specter", Ghosts, 5, owner) {
-	//Special: If you have 2 or fewer cards in your hand, any time you can play a minion, you can play this card from your discard pile instead.
+	//Special: If you have 2 or fewer cards in your hand, any time you can play a minion,
+    //you can play this card from your discard pile instead.
 }
 
 class GhastlyArrival(owner: Player) extends Action("Ghastly Arrival", Ghosts, owner) {

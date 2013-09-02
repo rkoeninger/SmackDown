@@ -31,9 +31,10 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   var discardPile = Set[DeckCard]()
   var drawPile = List[DeckCard]()
   var bonuses = Set[Bonus]()
-  var moves = Set[Move]()
+  var moves = Set[Ability]()
   var onTurnBeginSet = Set[Unit => Unit]()
   var onTurnEndSet = Set[Unit => Unit]()
+  var abilities = List[Set[Ability]]()
   
   def onTurnBegin(todo: => Unit) { onTurnBeginSet += (_ => todo) }
   
@@ -42,7 +43,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
   def minionsInPlay() = table.basesInPlay.flatMap(_.minions).filter(_.owner == this)
   
   def beginTurn() {
-    moves = Set(new PlayMinion(), new PlayAction())
+    abilities = List(Set(new PlayMinion(), new PlayAction()))
     
     onTurnBeginSet.foreach(_.apply())
     onTurnBeginSet = Set[Unit => Unit]()
@@ -57,11 +58,11 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
     draw(2)
     
     while (hand.size > 10)
-      for (c <- choose.card.inHand) c --> Discard
+      for (c <- choose.card.inHand) c moveTo Discard
   }
   
   def draw() {
-    if (replenishDrawPile) { if (! drawPile.isEmpty) drawPile(0) --> Hand }
+    if (replenishDrawPile) { if (! drawPile.isEmpty) drawPile(0) moveTo Hand }
   }
   
   def draw(count: Int) {
@@ -179,7 +180,7 @@ class Player(val name: String, val factions: List[Faction], val table: Table, va
 }
 
 trait Callback {
-  def choose[T](options: Set[T]): Option[T] = None
+  def choose[T](options: Set[T]): Decision[T] = Impossible
   def chooseOrder[T](options: List[T]): List[T] = options
   def chooseAny[T](options: Set[T]): Set[T] = Set()
   def confirm(): Boolean = false
@@ -188,10 +189,41 @@ trait Callback {
   def pointsGained(player: Player, oldPoints: Int, newPoints: Int) {}
 }
 
-class Choice[T](val me: Player, var options: Set[T]) {
+class Choice[A](val me: Player, options: Set[A]) {
+  def filter(f: A => Boolean): Choice[A] = new Choice[A](me, options filter f)
   private def decide = me.callback.choose(options)
-  def foreach[U](f: T => U) { decide foreach f }
-  def filter(f: T => Boolean): Choice[T] = new Choice[T](me, options filter f)
+  def foreach[B](f: A => B) { decide foreach f }
+  def map[B](f: A => B) { decide map f }
+  def flatMap[B](f: A => Decision[B]) { decide flatMap f }
+}
+
+sealed trait Decision[+A] {
+  def filter(f: A => Boolean): Decision[A]
+  def foreach[B](f: A => B) { map(f) }
+  def map[B](f: A => B): Decision[B]
+  def flatMap[B](f: A => Decision[B]): Decision[B]
+}
+
+object Decision {
+  def apply[A](value: A) = Chosen(value)
+}
+
+sealed case class Chosen[+A](value: A) extends Decision[A] {
+  def filter(f: A => Boolean) = if (f(value)) this else Impossible
+  def map[B](f: A => B) = Chosen(f(value))
+  def flatMap[B](f: A => Decision[B]) = f(value)
+}
+
+case object Impossible extends Decision[Nothing] {
+  def filter(f: Nothing => Boolean) = Impossible
+  def map[B](f: Nothing => B) = Impossible
+  def flatMap[B](f: Nothing => Decision[B]) = Impossible
+}
+
+case object Decline extends Decision[Nothing] {
+  def filter(f: Nothing => Boolean) = Decline
+  def map[B](f: Nothing => B) = Decline
+  def flatMap[B](f: Nothing => Decision[B]) = Decline
 }
 
 abstract class Faction(val name: String) {
@@ -200,7 +232,7 @@ abstract class Faction(val name: String) {
 }
 
 object Deck {
-  def apply(owner: Player, cs: (Player => Set[DeckCard])*) = cs.flatMap(x => x(owner)).toSet
+  def apply(owner: Player, cs: (Player => Set[DeckCard])*) = cs.flatMap(_(owner)).toSet
 }
 
 abstract class Card(val name: String, val faction: Faction)
@@ -220,7 +252,7 @@ extends Card(name, faction) with Destination {
   def actions() = cards.actions
   var minionBonuses = Set[Bonus]()
   var bonuses = Set[BreakPointBonus]()
-  def breakPoint() = math.max(0, startingBreakPoint + bonuses.map(_.getBonus(this)).sum)
+  def breakPoint() = math.max(0, startingBreakPoint + bonuses.map(_(this)).sum)
   
   def totalPower() = minions.map(_.power).sum
   
@@ -269,7 +301,7 @@ abstract class DeckCard(name: String, faction: Faction, val owner: Player) exten
   
   def table() = owner.table
   
-  def -->(dest: Destination) = dest match {
+  def moveTo(dest: Destination) = dest match {
     case Hand => if (! isInHand) {
       remove
       owner.hand += this
@@ -320,22 +352,22 @@ extends DeckCard(name, faction, owner) with Destination {
   var actions = Set[Action]()
   def isOnTable() = base.isDefined
   def power() = power0
-    + bonuses.map(_.getBonus(this)).sum
-    + (if (isOnBase) owner.bonuses.map(_.getBonus(this)).sum else 0)
-    + base.map(_.minionBonuses.map(_.getBonus(this)).sum).getOrElse(0)
-  def play(base: Base) {}
+    + bonuses.map(_(this)).sum
+    + (if (isOnBase) owner.bonuses.map(_(this)).sum else 0)
+    + base.map(_.minionBonuses.map(_(this)).sum).getOrElse(0)
+  def play(base: Base): Ability = NullAbility
   def destructable() = true
-  def destroy(destroyer: Player) {
-    if (destructable) this --> Discard
+  def destroyBy(destroyer: Player) {
+    if (destructable) this moveTo Discard
   }
-  def beforeScore(base: Base) {}
-  def afterScore(base: Base, newBase: Base) {}
+  def beforeScore(base: Base): Ability = NullAbility
+  def afterScore(base: Base, newBase: Base): Ability = NullAbility
   def minionDestroyed(minion: Minion, base: Base) {}
   def minionPlayed(minion: Minion) {}
 }
 
 class Action(name: String, faction: Faction, owner: Player) extends DeckCard(name, faction, owner) {
-  override def -->(dest: Destination) = dest match {
+  override def moveTo(dest: Destination) = dest match {
     case minion: Minion => {
       remove
       if (this.minion != Some(minion)) {
@@ -343,7 +375,7 @@ class Action(name: String, faction: Faction, owner: Player) extends DeckCard(nam
         this.minion = Some(minion)
       }
     }
-    case _ => super .-->(dest)
+    case _ => super.moveTo(dest)
   }
   protected override def remove() {
     if (isOnMinion) {
@@ -355,19 +387,19 @@ class Action(name: String, faction: Faction, owner: Player) extends DeckCard(nam
   }
   var minion: Option[Minion] = None
   def isOnMinion() = minion.isDefined
-  def play(user: Player) {}
-  def beforeScore(base: Base) {}
-  def afterScore(base: Base, newBase: Base) {}
+  def play(user: Player): Ability = NullAbility
+  def beforeScore(base: Base): Ability = NullAbility
+  def afterScore(base: Base, newBase: Base): Ability = NullAbility
   def destroy(card: Card) {}
 }
 
 trait Bonus {
-  def getBonus(minion: Minion): Int
+  def apply(minion: Minion): Int
 }
 
 object Bonus {
-  def apply(func: Minion => Int) = new Bonus { def getBonus(minion: Minion) = func(minion) }
-  def apply(value: Int) = new Bonus { def getBonus(minion: Minion) = value }
+  def apply(func: Minion => Int) = new Bonus { def apply(minion: Minion) = func(minion) }
+  def apply(value: Int) = new Bonus { def apply(minion: Minion) = value }
   def untilTurnEnd(player: Player, value: Int) {
     val bonus = Bonus(value)
     player.bonuses += bonus
@@ -381,12 +413,12 @@ object Bonus {
 }
 
 trait BreakPointBonus {
-  def getBonus(base: Base): Int
+  def apply(base: Base): Int
 }
 
 object BreakPointBonus {
-  def apply(func: Base => Int) = new BreakPointBonus { def getBonus(base: Base) = func(base) }
-  def apply(value: Int) = new BreakPointBonus { def getBonus(base: Base) = value }
+  def apply(func: Base => Int) = new BreakPointBonus { def apply(base: Base) = func(base) }
+  def apply(value: Int) = new BreakPointBonus { def apply(base: Base) = value }
   def untilTurnEnd(player: Player, base: Base, func: Base => Int) {
     val bonus = BreakPointBonus(func)
     base.bonuses += bonus
@@ -394,12 +426,31 @@ object BreakPointBonus {
   }
 }
 
-trait Move {
+class Property[M, A](entity: M, initValue: A) {
+  private var modifiers = Set[(M, A) => A]()
+  def value = modifiers.foldLeft(initValue)((cur, op) => op(entity, cur))
+  def modify(f: (M, A) => A) { modifiers = modifiers + f }
+  def remove(f: (M, A) => A) { modifiers = modifiers - f }
+}
+
+trait Ability {
   def isPlayable(user: Player): Boolean
   def play(user: Player)
 }
 
-class PlayMinion(maxPower: Int) extends Move {
+object Ability {
+  def apply(todo: => Unit) = new Ability() {
+    def isPlayable(user: Player) = true
+    def play(user: Player) = todo
+  }
+}
+
+object NullAbility extends Ability {
+  def isPlayable(user: Player) = false
+  def play(user: Player) {}
+}
+
+class PlayMinion(maxPower: Int) extends Ability {
   def this() = this(Int.MaxValue)
   def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion] && m.as[Minion].power <= maxPower)
   def play(user: Player) {
@@ -411,7 +462,7 @@ class PlayMinion(maxPower: Int) extends Move {
   }
 }
 
-class PlayMinionOnBase(base: Base) extends Move {
+class PlayMinionOnBase(base: Base) extends Ability {
   def isPlayable(user: Player) = user.hand.exists(m => m.is[Minion])
   def play (user: Player) {
     for (m <- user.choose.minion.inHand) {
@@ -421,7 +472,7 @@ class PlayMinionOnBase(base: Base) extends Move {
   }
 }
 
-class PlayAction extends Move {
+class PlayAction extends Ability {
   def isPlayable(user: Player) = user.hand.exists(_.is[Action])
   def play(user: Player) {
     for (a <- user.choose.action.inHand)

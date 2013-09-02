@@ -33,7 +33,7 @@ class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombie
   // The winner discards their hand and draws 5 cards.
   override def afterScore(newBase: Base) {
     for (p <- score.filter(_.winner).map(_.player)) {
-      for (c <- p.hand) c --> Discard
+      for (c <- p.hand) c moveTo Discard
       p.draw(5)
     }
   }
@@ -41,10 +41,10 @@ class EvansCityCemetery(table: Table) extends Base("Evans City Cemetery", Zombie
 
 class Walker(owner: Player) extends Minion("Walker", Zombies, 2, owner) {
   // Look at the top card of your deck, you may place it in your discard pile
-  override def play(base: Base) {
+  override def play(base: Base) = Ability {
     for (c <- owner.peek)
       if (owner.chooseYesNo)
-        c --> Discard
+        c moveTo Discard
   }
 }
 
@@ -54,9 +54,9 @@ class TenaciousZ(owner: Player) extends Minion("Tenacious Z", Zombies, 2, owner)
 
 class GraveDigger(owner: Player) extends Minion("Grave Digger", Zombies, 4, owner) {
   // You may place a minion from your discard into your hand.
-  override def play(base: Base) {
+  override def play(base: Base) = Ability {
     for (m <- owner.callback.choose(owner.discardPile.minions))
-      m --> Hand
+      m moveTo Hand
   }
 }
 
@@ -75,10 +75,10 @@ class TheyreComingToGetYou(owner: Player) extends Action("They're Coming to Get 
 class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
   // Select a minion from your deck, take all copies of that minion and put them in your discard.
   // Shuffle your deck.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m0 <- user.callback.choose(user.drawPile.minions.toSet);
-         m <- user.drawPile.filter(_.getClass == m0.getClass)) {
-      m --> Discard
+         m  <- user.drawPile.filter(_.getClass == m0.getClass)) {
+      m moveTo Discard
       user.shuffle
     }
   }
@@ -86,15 +86,15 @@ class MallCrawl(owner: Player) extends Action("Mall Crawl", Zombies, owner) {
 
 class GraveRobbing(owner: Player) extends Action("Grave Robbing", Zombies, owner) {
   // Place a card from your discard into your hand.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (c <- user.choose.card.inDiscardPile)
-      c --> Hand
+      c moveTo Hand
   }
 }
 
 class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, owner) {
   // You may play a minion from your discard as an extra minion.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inDiscardPile)
       user.playMinion(m)
   }
@@ -102,10 +102,10 @@ class TheyKeepComing(owner: Player) extends Action("They Keep Coming", Zombies, 
 
 class NotEnoughBullets(owner: Player) extends Action("Not Enough Bullets", Zombies, owner) {
   // Select a minion from your discard, take all copies of that minion and put them into your hand.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m0 <- user.callback.choose(user.discardPile.minions.toSet);
          m <- user.discardPile.filter(_.getClass == m0.getClass))
-      m --> Hand
+      m moveTo Hand
   }
 }
 

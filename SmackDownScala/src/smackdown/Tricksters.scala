@@ -34,15 +34,15 @@ class MushroomKingdom(table: Table) extends Base("Mushroom Kingdom", Tricksters,
   // from any base to here.
   override def onTurnBegin(player: Player) {
     for (m <- player.callback.choose(table.minions.filter(m => m.base != Some(this) && m.owner != player)))
-      m --> this
+      m moveTo this
   }
 }
 
 class Gremlin(owner: Player) extends Minion("Gremlin", Tricksters, 2, owner) {
   // Ongoing: After this minion is destroyed, draw a card
   // and each other player discards a random card.
-  override def destroy(destroyer: Player) {
-    super.destroy(destroyer)
+  override def destroyBy(destroyer: Player) {
+    super.destroyBy(destroyer)
     owner.draw
     for (p <- owner.otherPlayers) p.randomDiscard
   }
@@ -51,9 +51,9 @@ class Gremlin(owner: Player) extends Minion("Gremlin", Tricksters, 2, owner) {
 class Gnome(owner: Player) extends Minion("Gnome", Tricksters, 3, owner) {
   // You may destroy a minion on this base
   // with power less than the number of minions you have here.
-  override def play(base: Base) {
+  override def play(base: Base) = Ability {
     for (m <- owner.choose.minion.onBase(base).powerAtMost(base.minions.ownedBy(owner).size - 1))
-      m.destroy(owner)
+      m.destroyBy(owner)
   }
 }
 
@@ -68,14 +68,14 @@ class Leprechaun(owner: Player) extends Minion("Leprechaun", Tricksters, 5, owne
   // destroy it (its ability is resolved first).
   override def minionPlayed(minion: Minion) {
     if (isOnTable && minion.base == this.base && minion.power < this.power)
-      minion.destroy(owner)
+      minion.destroyBy(owner)
   }
   // TODO: what happens if Leprechaun has Upgrade (so he's a 7) and NinjaMaster is played, which kills the Lep?
 }
 
 class TakeTheShinies(owner: Player) extends Action("Take the Shinies", Tricksters, owner) {
   // Each other player discards 2 random cards.
-  override def play(user: Player) { for (p <- user.otherPlayers) p.randomDiscard(2) }
+  override def play(user: Player) = Ability { for (p <- user.otherPlayers) p.randomDiscard(2) }
 }
 
 class FlameTrap(owner: Player) extends Action("Flame Trap", Tricksters, owner) {
@@ -109,7 +109,7 @@ class EnshroudingMist(owner: Player) extends Action("Enshrouding Mist", Trickste
 
 class Disenchant(owner: Player) extends Action("Disenchant", Tricksters, owner) {
   // Destroy an action attached to a minion or a base.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (a <- user.choose.action.inPlay)
       a.destroy(this)
   }

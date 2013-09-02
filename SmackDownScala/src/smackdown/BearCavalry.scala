@@ -59,7 +59,7 @@ class YourePrettyMuchBorscht(owner: Player) extends Action("You're Pretty Much B
 }
 
 class BearHug(owner: Player) extends Action("Bear Hug", BearCavalry, owner) {
-	//Each other player destroys his or her minions with the least power (owner chooses in case of ties).
+	//Each other player destroys one of his or her minions with the least power (owner chooses in case of ties).
 }
 
 class BearNecessities(owner: Player) extends Action("Bear Necessities", BearCavalry, owner) {

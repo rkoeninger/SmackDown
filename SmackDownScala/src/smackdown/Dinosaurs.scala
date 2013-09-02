@@ -38,8 +38,8 @@ class ArmorStego(owner: Player) extends Minion("Armor Stego", Dinosaurs, 3, owne
 
 class Laseratops(owner: Player) extends Minion("Laseratops", Dinosaurs, 4, owner) {
   // Destroy a minion power 2 or less on this base.
-  override def play(base: Base) {
-    for (m <- owner.choose.minion.onBase(base).powerAtMost(2)) m.destroy(owner)
+  override def play(base: Base) = Ability {
+    for (m <- owner.choose.minion.onBase(base).powerAtMost(2)) m.destroyBy(owner)
   }
 }
 
@@ -47,12 +47,12 @@ class KingRex(owner: Player) extends Minion("King Rex", Dinosaurs, 7, owner)
 
 class Howl(owner: Player) extends Action("Howl", Dinosaurs, owner) {
   // Each of your minions gains +1 power until the end of your turn.
-  override def play(user: Player) { Bonus.untilTurnEnd(user, 1) }
+  override def play(user: Player) = Ability { Bonus.untilTurnEnd(user, 1) }
 }
 
 class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owner) {
   // One minion gains +4 power until the end of your turn.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inPlay)
       Bonus.untilTurnEnd(user, m, 4)
   }
@@ -60,18 +60,18 @@ class Augmentation(owner: Player) extends Action("Augmentation", Dinosaurs, owne
 
 class NaturalSelection(owner: Player) extends Action("Natural Selection", Dinosaurs, owner) {
   // Choose one of your minions on a base. Destroy a minion there with power less then yours.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m0 <- user.choose.minion.inPlay.mine;
          b <- m0.base;
          m1 <- user.choose.minion.onBase(b).powerAtMost(m0.power - 1))
-      m1.destroy(user)
+      m1.destroyBy(user)
   }
 }
 
 class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
   // Play on a minion. Ongoing: This minion has +2 power.
   val bonus = Bonus(2)
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inPlay)
       m.bonuses += bonus
   }
@@ -83,16 +83,16 @@ class Upgrade(owner: Player) extends Action("Upgrade", Dinosaurs, owner) {
 
 class SurvivalOfTheFittest(owner: Player) extends Action("Survival of the Fittest", Dinosaurs, owner) {
   // Destroy the lowest-power minion (you choose in case of a tie) on each base with a higher-power minion.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (b <- table.basesInPlay.filter(_.minions.map(_.power).size > 1);
          m <- user.callback.choose(b.minions.filter(_.power < b.minions.map(_.power).max)))
-      m.destroy(user)
+      m.destroyBy(user)
   }
 }
 
 class Rampage(owner: Player) extends Action("Rampage", Dinosaurs, owner) {
   // Reduce the breakpoint of a base by the power of one of your minions on that base until end of turn.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (b <- user.choose.base.inPlay;
          m <- user.choose.minion.onBase(b).mine)
       BreakPointBonus.untilTurnEnd(user, b, _ => - m.power)

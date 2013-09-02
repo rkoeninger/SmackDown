@@ -11,11 +11,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set()
       player.hand = Set()
       
-      card1 --> Hand
+      card1 moveTo Hand
       assert(player.hand == Set(card1))
       assert(player.drawPile == List(card2, card3, card4))
       
-      card3 --> Hand
+      card3 moveTo Hand
       assert(player.hand == Set(card1, card3))
       assert(player.drawPile == List(card2, card4))
     }
@@ -24,11 +24,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set(card1)
       player.hand = Set(card2, card3, card4)
       
-      card2 --> Discard
+      card2 moveTo Discard
       assert(player.hand == Set(card3, card4))
       assert(player.discardPile == Set(card1, card2))
       
-      card3 --> Discard
+      card3 moveTo Discard
       assert(player.hand == Set(card4))
       assert(player.discardPile == Set(card1, card2, card3))
     }
@@ -38,16 +38,16 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set()
       
-      card1 --> base
-      card2 --> base
+      card1 moveTo base
+      card2 moveTo base
       assert(player.hand == Set())
       assert(base.cards == Set(card1, card2))
       
-      card1 --> Hand
+      card1 moveTo Hand
       assert(player.hand == Set(card1))
       assert(base.cards == Set(card2))
       
-      card2 --> Hand
+      card2 moveTo Hand
       assert(player.hand == Set(card1, card2))
       assert(base.cards == Set())
     }
@@ -56,11 +56,11 @@ class DeckDiscardTest extends FunSpec {
       player.discardPile = Set(card1, card2, card3, card4)
       player.hand = Set()
       
-      card1 --> Hand
+      card1 moveTo Hand
       assert(player.hand == Set(card1))
       assert(player.discardPile == Set(card2, card3, card4))
       
-      card3 --> Hand
+      card3 moveTo Hand
       assert(player.hand == Set(card1, card3))
       assert(player.discardPile == Set(card2, card4))
     }
@@ -70,11 +70,11 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set(card4)
       
-      card2 --> base
+      card2 moveTo base
       assert(player.discardPile == Set(card1, card3))
       assert(base.cards == Set(card4, card2))
       
-      card3 --> base
+      card3 moveTo base
       assert(player.discardPile == Set(card1))
       assert(base.cards == Set(card2, card3, card4))
     }
@@ -84,16 +84,16 @@ class DeckDiscardTest extends FunSpec {
       player.hand = Set()
       base.cards = Set()
       
-      card1 --> base
-      card2 --> base
+      card1 moveTo base
+      card2 moveTo base
       assert(player.hand == Set())
       assert(base.cards == Set(card1, card2))
       
-      card1 --> DrawBottom
+      card1 moveTo DrawBottom
       assert(player.drawPile == List(card3, card4, card1))
       assert(base.cards == Set(card2))
       
-      card2 --> DrawBottom
+      card2 moveTo DrawBottom
       assert(player.drawPile == List(card3, card4, card1, card2))
       assert(base.cards == Set())
     }

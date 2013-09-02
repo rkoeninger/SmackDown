@@ -28,7 +28,7 @@ class TempleOfGoju(table: Table) extends Base("Temple of Goju", Ninjas, 18, (2, 
     for (p <- minions.groupBy(_.owner).map(_._1)) {
       val highestPower = minions.ownedBy(p).map(_.power).max
       for (m <- minions.ownedBy(p).filter(_.power == highestPower))
-        m --> DrawBottom // TODO: What if there's a tie for highest-powered?
+        m moveTo DrawBottom // TODO: What if there's a tie for highest-powered?
     }
   }
 }
@@ -50,50 +50,50 @@ class Shinobi(owner: Player) extends Minion("Shinobi", Ninjas, 3, owner) {
 
 class TigerAssassin(owner: Player) extends Minion("Tiger Assassin", Ninjas, 4, owner) {
   // You may destroy a minion power 3 or less on this base.
-  override def play(base: Base) {
+  override def play(base: Base) = Ability {
     for (m <- owner.choose.minion.onBase(base).powerAtMost(3))
-      m.destroy(owner)
+      m.destroyBy(owner)
   }
 }
 
 class NinjaMaster(owner: Player) extends Minion("Ninja Master", Ninjas, 5, owner) {
   // You may destory a minion on this base.
-  override def play(base: Base) {
+  override def play(base: Base) = Ability {
     for (m <- owner.choose.minion.onBase(base))
-      m.destroy(owner)
+      m.destroyBy(owner)
   }
 }
 
 class SeeingStars(owner: Player) extends Action("Seeing Stars", Ninjas, owner) {
   // Destroy a minion of power 3 or less.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inPlay.powerAtMost(3))
-      m.destroy(user)
+      m.destroyBy(user)
   }
 }
 
 class WayOfDeception(owner: Player) extends Action("Way of Deception", Ninjas, owner) {
   // Move one of your minions to a different base.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inPlay.mine;
          b0 <- m.base;
          b1 <- user.choose.base.inPlay.otherThan(b0))
-      m --> b1
+      m moveTo b1
   }
 }
 
 class HiddenNinja(owner: Player) extends Action("Hidden Ninja", Ninjas, owner) {
   // Special: Before a base scores, play a minion there.
-  override def beforeScore(base: Base) {
+  override def beforeScore(base: Base) = Ability {
     owner.playMinion(base)
   }
 }
 
 class Assassination(owner: Player) extends Action("Assassination", Ninjas, owner) {
   // Play on a minion. Ongoing: Destroy this minion at end of turn.
-  override def play(user: Player) {
+  override def play(user: Player) = Ability {
     for (m <- user.choose.minion.inPlay)
-      user.onTurnEnd { m.destroy(user) }
+      table.currentPlayer.onTurnEnd { m.destroyBy(user) }
   }
 }
 
