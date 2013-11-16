@@ -1,7 +1,7 @@
 package smackdown.test
 
 import smackdown.{Action, Base, Callback, DeckCard, Faction, Minion, Player, Rank, Table}
-import smackdown.{Aliens, Dinosaurs, Ninjas, Pirates, Robots, Tricksters, Wizards, Zombies}
+import smackdown.{Aliens, BearCavalry, Dinosaurs, Ghosts, KillerPlants, Ninjas, Pirates, Robots, Steampunks, Tricksters, Wizards, Zombies}
 import org.scalatest.FunSpec
 
 class FactionTest extends FunSpec {
@@ -18,7 +18,7 @@ class FactionTest extends FunSpec {
   }
   
   def findFactions(): Set[Faction] = Set[Faction](
-      Aliens, Dinosaurs, Ninjas, Pirates, Robots, Tricksters, Wizards, Zombies)
+      Aliens, BearCavalry, Dinosaurs, Ghosts, KillerPlants, Ninjas, Pirates, Robots, Steampunks, Tricksters, Wizards, Zombies)
   
   val table = new Table()
   val player1 = new Player("Bob", List(TestFaction), table, new Callback() {})
