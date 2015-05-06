@@ -99,43 +99,49 @@ Normally, the effect a card has is _inherent_ in its code. But that's not someth
 
 ``` scala
 
-sealed trait Effect(cause: Cause)
-case class DestroyMinion(cause: Cause, target: Minion)
-case class DestroyAction(cause: Cause, target: Action)
-case class Move(cause: Cause, target: Minion, destination: Base)
-case class ReturnToHand(cause: Cause, target: Minion)
+sealed trait Effect(cause: Cause) extends Cause
+case class DestroyMinion(cause: Cause, target: Minion) extends Effect
+case class DestroyAction(cause: Cause, target: Action) extends Effect
+case class Move(cause: Cause, target: Minion, destination: Base) extends Effect
+case class ReturnToHand(cause: Cause, target: Minion) extends Effect
+case object NoEffect extends Effect // does nothing
 
 sealed trait Cause
-case object BaseCause extends Cause
-case class PlayerCause(player: Player, card: Card)
+case class BaseCause(base: Base) extends Cause
+case class PlayerCardCause(player: Player, card: Card) extends Cause
+case class PlayerBaseCause(player: Player, base: Base) extends Cause
+case object NaturalCause extends Cause // start or end of turn, etc.
+
+sealed trait Presponse(cause: Cause)
+case class Prevent(cause: Cause) extends Prespone
+case class NoPresponse(cause: Cause) extends Prespone
 
 sealed trait Response(cause: Cause)
-case class Negate(cause: Cause)
-case class NoResponse(cause: Cause)
+case class Negate(cause: Cause) extends Response
+case class NoResponse(cause: Cause) extends Response
 
 class SaucyWench extends Minion {
-  def play(base: Base) = {
-    for (target <- owner.choose.minion.onBase(base).powerAtMost(2))
-      return DestroyMinion(PlayerCause(owner, this), target)
-    return NoEffect
-  }
+  def play(base: Base) =
+    owner.choose.minion.onBase(base).powerAtMost(2) match {
+      case Some(target) => DestroyMinion(PlayerCause(owner, this), target)
+      case None => NoEffect
+    }
 }
 
 class GeneralIvan extends Minion {
-  def respond(effect: Effect) = {
-    return effect match {
-      case dm: DestroyMinion if (dm.target.owner == owner) => Negate
-      case _ => NoResponse
+  def respond(effect: Effect) =
+    effect match {
+      case dm: DestroyMinion if (dm.target.owner == owner) => Negate(effect)
+      case _ => NoResponse(effect)
     }
 }
 
 class Overrun extends Action {
-  def preempt(effect: Effect) {
-    return effect match {
-      case: pm: PlayMinion if (pm.minion.owner != owner) && (pm.base == attachedBase) => Prevent
-      case _ => NoResponse
+  def preempt(effect: Effect) =
+    effect match {
+      case: pm: PlayMinion if (pm.minion.owner != owner) && (pm.base == attachedBase) => Prevent(effect)
+      case _ => NoPresponse(effect)
     }
-  }
 }
 
 ```
